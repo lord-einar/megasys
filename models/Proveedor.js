@@ -6,9 +6,9 @@ class Proveedor extends Model {}
 
 Proveedor.init({
   id_proveedor: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
   nombre: {
     type: DataTypes.STRING,
@@ -18,29 +18,44 @@ Proveedor.init({
     type: DataTypes.STRING,
     allowNull: false
   },
-  nombre_ejecutivo: {
+  localidad: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  provincia: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  pais: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  nombre_ejecutivo: {
+    type: DataTypes.STRING,
   },
   email_ejecutivo: {
     type: DataTypes.STRING,
-    allowNull: false
   },
-  email_soporte: {
+  email_soporte_1: {
     type: DataTypes.STRING,
-    allowNull: false
   },
-  telefono_soporte_n1: {
+  email_soporte_2: {
     type: DataTypes.STRING,
-    allowNull: false
   },
-  telefono_soporte_n2: {
+  email_soporte_3: {
     type: DataTypes.STRING,
-    allowNull: false
   },
-  telefono_soporte_n3: {
+  telefono_soporte_1: {
     type: DataTypes.STRING,
-    allowNull: false
+  },
+  telefono_soporte_2: {
+    type: DataTypes.STRING,
+  },
+  telefono_soporte_3: {
+    type: DataTypes.STRING,
+  },
+  observaciones: {
+    type: DataTypes.STRING,
   }
 }, {
   sequelize,

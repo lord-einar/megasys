@@ -1,17 +1,18 @@
 const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
+const Empresa = require("./Empresa.");
 const sequelize = dbConnect();  // Obtén la instancia de sequelize.
 
 class Sede extends Model {}
 
 Sede.init({
   id_sede: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
   id_empresa: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'Empresas',
@@ -26,6 +27,26 @@ Sede.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+  localidad: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  provincia: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  pais: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  telefono: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   ip_asignada: {
     type: DataTypes.STRING,
     allowNull: false
@@ -34,5 +55,6 @@ Sede.init({
   sequelize,
   modelName: 'Sede'
 });
+
 
 module.exports = Sede

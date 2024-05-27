@@ -6,9 +6,9 @@ class Empresa extends Model {}
 
 Empresa.init({
   id_empresa: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-    autoIncrement: true
   },
   nombre_empresa: {
     type: DataTypes.STRING,
@@ -19,6 +19,8 @@ Empresa.init({
   modelName: 'Empresa'
 });
 
+
 // Puedes optar por sincronizar dentro de un controlador o durante la inicialización del servidor.
 module.exports = Empresa;
+
 

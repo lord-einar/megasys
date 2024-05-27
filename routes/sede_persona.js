@@ -1,12 +1,12 @@
 const {Router} = require('express');
-const {asignarPersonaASede} = require('../controllers/sede_persona');
+const {sedePersonaPOST, sedePersonaGET} = require('../controllers/sede_persona');
 
 
 const router = Router();
 
-router.get('/', asignarPersonaASede)
+router.get('/', sedePersonaGET)
 
-// router.post('/', sedesPOST)
+router.post('/', sedePersonaPOST)
 
 
 module.exports = router;

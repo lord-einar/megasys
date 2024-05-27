@@ -8,10 +8,18 @@ const dbConnect = () => {
     sequelize = new Sequelize(
       process.env.DATABASE,
       process.env.USER,
-      process.env.PASS,
+      process.env.PASS,    
       {
-        host: "localhost",
-        dialect: "mysql",
+        host: "germanojeda.ar",
+        dialect: "mariadb",
+        dialectOptions: {
+          charset: 'utf8mb4',
+          collate: 'utf8mb6_unicode_ci'
+        },
+        define: {
+          charset: 'utf8mb4',
+          collate: 'utf8mb4_unicode_ci'
+        }
       }
     );
 
@@ -27,5 +35,7 @@ const dbConnect = () => {
   }
   return sequelize;
 };
+
+module.exports = dbConnect;
 
 module.exports = dbConnect;

@@ -1,25 +1,57 @@
 const Proveedor = require("../models/Proveedor");
 
-
-
 const proveedoresGET = async (req, res) => {
-    res.status(200).send('okUser GET')
-//   const usuarios = await User.findAll({ order: [["nombre", "ASC"]] });
+  const usuarios = await Proveedor.findAll();
 
-//   res.json(usuarios);
+  res.json(usuarios);
 };
 
 const proveedoresPOST = async (req, res) => {
-  const { nombre, user } = req.body;
+  const {
+    nombre,
+    direccion,
+    localidad,
+    provincia,
+    pais,
+    nombre_ejecutivo,
+    email_ejecutivo,
+    email_soporte_1,
+    email_soporte_2,
+    email_soporte_3,
+    telefono, ejecutivo,
+    telefono_soporte_1,
+    telefono_soporte_2,
+    telefono_soporte_3
+  } = req.body;
 
-  await Proveedor.sync({ force: false });
-  const proveedores = await Proveedor.create({ nombre, user });
 
-  res.json(proveedores);
+  try {
+    await Proveedor.sync({ force: false });
+    const proveedores = await Proveedor.create({ 
+      nombre,
+      direccion,
+      localidad,
+      provincia,
+      pais,
+      nombre_ejecutivo,
+      email_ejecutivo,
+      email_soporte_1,
+      email_soporte_2,
+      email_soporte_3,
+      telefono, ejecutivo,
+      telefono_soporte_1,
+      telefono_soporte_2,
+      telefono_soporte_3
+    });
+  
+    res.json(proveedores);
+
+} catch (error) {
+    res.status(500).send('Error al crear el rol: ' + error.message);
+}
 };
 
-
 module.exports = {
-    proveedoresGET,
-    proveedoresPOST
+  proveedoresGET,
+  proveedoresPOST,
 };

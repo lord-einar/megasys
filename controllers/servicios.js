@@ -1,24 +1,47 @@
 const Servicio = require("../models/Servicio");
+const { servicioProveedorByIDServicio } = require("./servicio_proveedor");
 
 
 const serviciosGET = async (req, res) => {
-    res.status(200).send('okUser GET')
-//   const usuarios = await User.findAll({ order: [["nombre", "ASC"]] });
+  const usuarios = await Servicio.findAll();
 
-//   res.json(usuarios);
+  res.json(usuarios);
 };
 
 const serviciosPOST = async (req, res) => {
-  const { nombre, user } = req.body;
+  const { nombre } = req.body;
 
-  await Servicio.sync({ force: false });
-  const servicios = await Servicio.create({ nombre, user });
+  try {
+    await Servicio.sync({ force: false });
+    const servicios = await Servicio.create({ nombre });
+  
+    res.json(servicios);
+} catch (error) {
+    res.status(500).send('Error al crear el servicio: ' + error.message);
+}
 
-  res.json(servicios);
 };
+
+const serviciosByID = async (req, res) => {
+
+  const id = req.params.id
+  const servicios = await Servicio.findByPk(id, {
+    attributes: {exclude: ['id_servicio', "createdAt", "updatedAt"]},
+  });
+
+  
+  const proveedores = await servicioProveedorByIDServicio(id)
+  
+  res.json({
+    servicios,
+    proveedores
+  })
+
+}
 
 
 module.exports = {
     serviciosGET,
-    serviciosPOST
+    serviciosPOST,
+    serviciosByID
 };

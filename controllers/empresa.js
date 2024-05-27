@@ -3,19 +3,20 @@ const Empresa = require("../models/Empresa.");
 
 
 const empresaGet = async (req, res) => {
-    res.status(200).send('okUser GET')
-//   const usuarios = await User.findAll({ order: [["nombre", "ASC"]] });
+  const empresas = await Empresa.findAll();
 
-//   res.json(usuarios);
+  res.json(empresas);
 };
 
 const empresaPost = async (req, res) => {
-  const { nombre, user } = req.body;
+  const { nombre_empresa } = req.body;
 
-  await Empresa.sync({ force: false });
-  const empresas = await Empresa.create({ nombre, user });
-
-  res.json(empresas);
+  try {
+      const empresa = await Empresa.create({ nombre_empresa });
+      res.json(empresa);
+  } catch (error) {
+      res.status(500).send('Error al crear la empresa: ' + error.message);
+  }
 };
 
 

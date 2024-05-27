@@ -1,19 +1,24 @@
 const Persona = require("../models/Persona");
 
 const personasGET = async (req, res) => {
-    res.status(200).send('okUser GET')
-//   const usuarios = await User.findAll({ order: [["nombre", "ASC"]] });
+    const personas = await Persona.findAll();
 
-//   res.json(usuarios);
+    res.status(200).send(personas)
 };
 
 const personasPOST = async (req, res) => {
-  const { nombre, user } = req.body;
+  const { nombre, email, telefono } = req.body;
 
-  await Persona.sync({ force: false });
-  const personas = await Persona.create({ nombre, user });
+  try {
+    await Persona.sync({ force: false });
+    const personas = await Persona.create({ nombre, email, telefono });
+  
+    res.json(personas);
+    
+  } catch (error) {
+    res.status(500).send("Error al crear la persona: " + error.message);
+  }
 
-  res.json(personas);
 };
 
 

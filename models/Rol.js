@@ -2,21 +2,23 @@ const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
 const sequelize = dbConnect();  // Obtén la instancia de sequelize.
 
-class Servicio extends Model {}
+class Rol extends Model {}
 
-Servicio.init({
-  id_servicio: {
+Rol.init({
+  id_rol: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    primaryKey: true,
   },
   nombre: {
     type: DataTypes.STRING,
     allowNull: false
   }
 }, {
-  sequelize,
-  modelName: 'Servicio'
+  sequelize,  // Usar la instancia obtenida.
+  modelName: 'Rol'
 });
 
-module.exports = Servicio
+
+// Puedes optar por sincronizar dentro de un controlador o durante la inicialización del servidor.
+module.exports = Rol;

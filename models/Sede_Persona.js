@@ -5,8 +5,14 @@ const sequelize = dbConnect();
 class SedePersona extends Model {}
 
 SedePersona.init({
+  id_sedePersona: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
   id_sede: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'Sedes',
@@ -14,16 +20,20 @@ SedePersona.init({
     }
   },
   id_persona: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'Personas',
       key: 'id_persona'
     }
   },
-  rol: {
-    type: DataTypes.STRING,
-    allowNull: false
+  id_rol: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'Rols',
+      key: 'id_rol'
+    }
   }
 }, {
   sequelize,

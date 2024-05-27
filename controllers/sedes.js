@@ -3,64 +3,69 @@ const Persona = require("../models/Persona");
 const Empresa = require("../models/Empresa.");
 const Inventario = require("../models/Inventario");
 const Servicio = require("../models/Servicio");
+const { sedePersonaByIDSede } = require("./sede_persona");
 
 const sedesGET = async (req, res) => {
-    res.status(200).send('okUser GET')
-};
-
-const sedesPOST = async (req, res) => {
-  const { nombre, user } = req.body;
-
-  await Sede.sync({ force: false });
-  const sedes = await Sede.create({ nombre, user });
+  const sedes = await Sede.findAll({
+    include: [{model: Empresa, attributes: ['nombre_empresa']}]
+  });
 
   res.json(sedes);
 };
 
+const sedesPOST = async (req, res) => {
+  const {
+    id_empresa,
+    nombre,
+    direccion,
+    localidad,
+    provincia,
+    pais,
+    telefono,
+    email,
+    ip_asignada,
+  } = req.body;
 
+  try {
+    await Sede.sync({ force: false });
+    const sedes = await Sede.create({
+      id_empresa,
+      nombre,
+      direccion,
+      localidad,
+      provincia,
+      pais,
+      telefono,
+      email,
+      ip_asignada,
+    });
 
-
-const sedeDetalladaGET = async (req, res) => {
-    try {
-        const sede = await Sede.findByPk(req.params.id, {
-            include: [
-                {
-                    model: Empresa
-                },
-                {
-                    model: Persona,
-                    attributes: ['nombre', 'email', 'telefono', 'tipo'] // Ajusta los atributos según necesites
-                },
-                {
-                    model: Inventario,
-                    attributes: ['marca', 'modelo', 'tipo_articulo', 'service_tag'] // Ajusta los atributos según necesites
-                },
-                {
-                    model: Servicio,
-                    through: {
-                        attributes: []
-                    },
-                    attributes: ['nombre_servicio']
-                }
-            ]
-        });
-
-        if (sede) {
-            res.json(sede);
-        } else {
-            res.status(404).send('Sede no encontrada');
-        }
-    } catch (error) {
-        res.status(500).send('Error al obtener la información detallada de la sede: ' + error.message);
-    }
+    res.json(sedes);
+  } catch (error) {
+    res.status(500).send("Error al crear la sede: " + error.message);
+  }
 };
 
-module.exports = {
-    sedeDetalladaGET
-};
+const sedeByID = async (req, res) => {
 
+  const id = req.params.id
+  const sede = await Sede.findByPk(id, {
+    attributes: {exclude: ['id_empresa', 'createdAt', 'updatedAt']},
+    include: [{ model: Empresa, attributes: ['nombre_empresa'] }]
+  });
+
+  
+  const personas = await sedePersonaByIDSede(id)
+  
+  res.json({
+    sede,
+    personas
+  })
+
+}
 
 module.exports = {
-    sedesGET,
-    sedesPOST
+  sedesGET,
+  sedesPOST,
+  sedeByID
 };

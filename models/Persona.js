@@ -6,9 +6,9 @@ class Persona extends Model {}
 
 Persona.init({
   id_persona: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
   nombre: {
     type: DataTypes.STRING,
@@ -19,10 +19,6 @@ Persona.init({
     allowNull: false
   },
   telefono: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  tipo: {
     type: DataTypes.STRING,
     allowNull: false
   }

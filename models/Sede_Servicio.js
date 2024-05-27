@@ -6,7 +6,8 @@ class SedeServicio extends Model {}
 
 SedeServicio.init({
   id_sede: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'Sedes',
@@ -14,7 +15,7 @@ SedeServicio.init({
     }
   },
   id_servicio: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'Servicios',
@@ -22,7 +23,7 @@ SedeServicio.init({
     }
   },
   id_proveedor: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'Proveedores',
