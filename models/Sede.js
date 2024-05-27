@@ -56,5 +56,8 @@ Sede.init({
   modelName: 'Sede'
 });
 
+// Empresa.hasMany(Sede, { foreignKey: "id_empresa" });
+// Sede.belongsTo(Empresa, { foreignKey: "id_empresa" });
+
 
 module.exports = Sede

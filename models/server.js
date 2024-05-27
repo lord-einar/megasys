@@ -50,7 +50,7 @@ class Server {
     this.app.use("/proveedores", require("../routes/proveedores"));
     this.app.use("/inventario", require("../routes/inventario"));
     this.app.use("/sedepersona", require("../routes/sede_persona"));
-    this.app.use("/sedeservicios", require("../routes/sede_servicios"));
+    this.app.use("/sedeservicio", require("../routes/sede_servicios"));
     this.app.use("/servicioproveedor", require("../routes/servicio_proveedor"));
     this.app.use("/", require('../routes/home'));
 

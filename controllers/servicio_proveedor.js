@@ -1,5 +1,4 @@
 const Proveedor = require("../models/Proveedor");
-const Servicio = require("../models/Servicio");
 const ServicioProveedor = require("../models/Servicio_Proveedor");
 
 const servicioProveedorGET = async (req, res) => {

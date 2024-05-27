@@ -1,5 +1,4 @@
 // Modelo para la relación muchos a muchos
-
 const Empresa = require("../models/Empresa.");
 const Inventario = require("../models/Inventario");
 const Persona = require("../models/Persona");
@@ -12,9 +11,9 @@ const SedeServicio = require("../models/Sede_Servicio");
 const ServicioProveedor = require("../models/Servicio_Proveedor");
 
 
-// SedePersona.belongsTo(Persona, { foreignKey: 'id_persona' });
-// SedePersona.belongsTo(Sede, { foreignKey: 'id_sede' });
-// SedePersona.belongsTo(Rol, { foreignKey: 'id_rol' });
+SedePersona.belongsTo(Persona, { foreignKey: 'id_persona' });
+SedePersona.belongsTo(Sede, { foreignKey: 'id_sede' });
+SedePersona.belongsTo(Rol, { foreignKey: 'id_rol' });
 
 // Asociaciones Empresa y Sede
 Empresa.hasMany(Sede, { foreignKey: "id_empresa" });
@@ -43,6 +42,8 @@ Proveedor.belongsToMany(Servicio, {
   foreignKey: 'id_proveedor',
   otherKey: 'id_servicio'
 });
+
+
 
 // Asociaciones Sede y Inventario
 Sede.hasMany(Inventario, { foreignKey: "id_sede" });

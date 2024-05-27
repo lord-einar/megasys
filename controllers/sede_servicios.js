@@ -1,10 +1,9 @@
-const SedeServicio = require("../models/Sede_Servicio");
-
+const SedeServicioProveedor = require("../models/Sede_Servicio");
 
 
 const asignarServicioASede = async(idSede, idPersona, rol) => {
   try {
-    const resultado = await SedeServicio.create({
+    const resultado = await SedeServicioProveedor.create({
       id_sede: idSede,
     //   id_persona: idPersona,
     //   rol: rol
