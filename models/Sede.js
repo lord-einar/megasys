@@ -1,6 +1,8 @@
 const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
 const Empresa = require("./Empresa.");
+const Inventario = require("./Inventario");
+const Remito = require("./Remito");
 const sequelize = dbConnect();  // Obtén la instancia de sequelize.
 
 class Sede extends Model {}
@@ -58,6 +60,11 @@ Sede.init({
 
 // Empresa.hasMany(Sede, { foreignKey: "id_empresa" });
 // Sede.belongsTo(Empresa, { foreignKey: "id_empresa" });
+
+// Asociaciones Sede
+// Sede.hasMany(Inventario, { foreignKey: 'id_sede' });
+// Sede.hasMany(Remito, { foreignKey: 'id_sede' });
+// Sede.hasMany(HistoricoInventario, { foreignKey: 'id_sede' });
 
 
 module.exports = Sede

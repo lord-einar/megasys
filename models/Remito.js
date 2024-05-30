@@ -1,8 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
-const Inventario = require("./Inventario");
-const RemitoInventario = require("./Remito_Inventario");
-const Sede = require("./Sede");
 const sequelize = dbConnect(); 
 
 class Remito extends Model {}
@@ -11,7 +8,7 @@ Remito.init({
   id_remito: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+    primaryKey: true
   },
   id_sede: {
     type: DataTypes.UUID,
@@ -43,10 +40,7 @@ Remito.init({
   tableName: 'remitos'
 });
 
-Remito.belongsToMany(Inventario, { through: RemitoInventario, foreignKey: 'id_remito' });
-Inventario.belongsToMany(Remito, { through: RemitoInventario, foreignKey: 'id_inventario' });
+module.exports = Remito;
 
-Sede.hasMany(Remito, { foreignKey: 'id_sede' });
-Remito.belongsTo(Sede, { foreignKey: 'id_sede' });
 
 module.exports = Remito;

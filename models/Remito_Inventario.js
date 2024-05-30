@@ -1,4 +1,4 @@
-const { DataTypes, Model } = require("sequelize");
+const { DataTypes, Model, UUIDV4 } = require("sequelize");
 const dbConnect = require("../config/db.config");
 const sequelize = dbConnect(); 
 

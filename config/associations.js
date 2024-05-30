@@ -11,6 +11,7 @@ const SedeServicio = require("../models/Sede_Servicio");
 const ServicioProveedor = require("../models/Servicio_Proveedor");
 const Remito = require("../models/Remito");
 const RemitoInventario = require("../models/Remito_Inventario");
+const HistoricoInventario = require("../models/HistoricoInventario");
 
 
 SedePersona.belongsTo(Persona, { foreignKey: 'id_persona' });
@@ -75,6 +76,18 @@ Servicio.belongsToMany(Proveedor, {
   through: "ProveedorServicio",
   foreignKey: "id_servicio",
 });
+
+// Asociación Sede con HistoricoInventario
+Sede.hasMany(HistoricoInventario, { foreignKey: 'id_sede' });
+HistoricoInventario.belongsTo(Sede, { foreignKey: 'id_sede' });
+
+// Asociación Inventario con HistoricoInventario
+Inventario.hasMany(HistoricoInventario, { foreignKey: 'id_inventario' });
+HistoricoInventario.belongsTo(Inventario, { foreignKey: 'id_inventario' });
+
+// Asociación Remito con HistoricoInventario
+Remito.hasMany(HistoricoInventario, { foreignKey: 'id_remito' });
+HistoricoInventario.belongsTo(Remito, { foreignKey: 'id_remito' });
 
 module.exports = {
   Empresa,

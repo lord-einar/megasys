@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
+const Sede = require("./Sede");
 const sequelize = dbConnect();
 
 class Inventario extends Model {}
@@ -36,11 +37,18 @@ Inventario.init({
   },
   activo: {
     type: DataTypes.BOOLEAN,
+    defaultValue: true,
     allowNull: false
-  }
+  },
+  num_serie: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
 }, {
   sequelize,
   modelName: 'Inventario'
 });
+
+Inventario.belongsTo(Sede, { foreignKey: 'id_sede' });
 
 module.exports = Inventario
