@@ -1,7 +1,5 @@
 const Empresa = require("../models/Empresa.");
 
-
-
 const empresaGet = async (req, res) => {
   const empresas = await Empresa.findAll();
 

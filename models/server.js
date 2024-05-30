@@ -17,7 +17,7 @@ class Server {
       this.middlewares();
       this.routes();
       // this.listen();
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: false });
     } catch (error) {
       console.error("Error durante la inicialización del servidor:", error);
     }
@@ -49,6 +49,7 @@ class Server {
     this.app.use("/servicios", require("../routes/servicios"));
     this.app.use("/proveedores", require("../routes/proveedores"));
     this.app.use("/inventario", require("../routes/inventario"));
+    this.app.use("/remitos", require("../routes/remitos"));
     this.app.use("/sedepersona", require("../routes/sede_persona"));
     this.app.use("/sedeservicio", require("../routes/sede_servicios"));
     this.app.use("/servicioproveedor", require("../routes/servicio_proveedor"));

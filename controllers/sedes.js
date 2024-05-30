@@ -1,9 +1,8 @@
 const Sede = require("../models/Sede");
-const Persona = require("../models/Persona");
 const Empresa = require("../models/Empresa.");
-const Inventario = require("../models/Inventario");
-const Servicio = require("../models/Servicio");
 const { sedePersonaByIDSede } = require("./sede_persona");
+const { servicioBySedeID } = require("./sede_servicios");
+const { servicioProveedorByIDServicio } = require("./servicio_proveedor");
 
 const sedesGET = async (req, res) => {
   const sedes = await Sede.findAll({
@@ -54,12 +53,18 @@ const sedeByID = async (req, res) => {
     include: [{ model: Empresa, attributes: ['nombre_empresa'] }]
   });
 
-  
   const personas = await sedePersonaByIDSede(id)
+
+  const serviciosSede = await servicioBySedeID(id)
+
+  console.log("serviciosSede: ", serviciosSede)
+
+  const servicios = await servicioProveedorByIDServicio(serviciosSede)
   
   res.json({
     sede,
-    personas
+    personas,
+    servicios
   })
 
 }

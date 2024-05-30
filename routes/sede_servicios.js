@@ -1,13 +1,15 @@
 const {Router} = require('express');
-const { asignarServicioASede } = require('../controllers/sede_servicios');
+const { asignarServicioASede, sedeServiciosGET } = require('../controllers/sede_servicios');
 
 
 
 const router = Router();
 
-router.get('/', asignarServicioASede)
+router.get('/', sedeServiciosGET)
 
-// router.post('/', sedesPOST)
+router.post('/', asignarServicioASede)
+
+
 
 
 module.exports = router;

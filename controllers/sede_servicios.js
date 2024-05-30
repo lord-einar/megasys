@@ -1,18 +1,46 @@
-const SedeServicioProveedor = require("../models/Sede_Servicio");
+const Proveedor = require("../models/Proveedor");
+const SedeServicio = require("../models/Sede_Servicio");
+const Servicio = require("../models/Servicio");
+const ServicioProveedor = require("../models/Servicio_Proveedor");
 
+const sedeServiciosGET = async (req, res) => {
+  const respuesta = await SedeServicio.findAll();
+  console.log("Hola");
+  res.status(200).send(respuesta);
+};
 
-const asignarServicioASede = async(idSede, idPersona, rol) => {
+const servicioBySedeID = async (id) => {
+
+  console.log(id)
   try {
-    const resultado = await SedeServicioProveedor.create({
-      id_sede: idSede,
-    //   id_persona: idPersona,
-    //   rol: rol
-    });
-    console.log('Persona asignada correctamente:', resultado);
+    const servicios = await SedeServicio.findAll({
+      where: { id_sede: id },
+      attributes: ["id_servicioProveedor"],
+    })
+
+    const idsServicioProveedor = servicios.map(servicio => servicio.dataValues.id_servicioProveedor);
+
+    return idsServicioProveedor
   } catch (error) {
-    console.error('Error al asignar persona a sede:', error);
+    console.error("Error al consultar servicios:", error);
   }
-}
+};
 
+const asignarServicioASede = async (req, res) => {
+  const { id_sede, id_servicioProveedor } = req.body;
 
-module.exports = {asignarServicioASede}
+  try {
+    const resultado = await SedeServicio.create({
+      id_sede,
+      id_servicioProveedor,
+    });
+    res.status(200).send({
+      msg: "Servicio vinculado correctamente:",
+      resultado,
+    });
+  } catch (error) {
+    console.error("Error al vincular el servicio:", error);
+  }
+};
+
+module.exports = { sedeServiciosGET, servicioBySedeID, asignarServicioASede };

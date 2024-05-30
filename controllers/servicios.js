@@ -28,7 +28,6 @@ const serviciosByID = async (req, res) => {
   const servicios = await Servicio.findByPk(id, {
     attributes: {exclude: ['id_servicio', "createdAt", "updatedAt"]},
   });
-
   
   const proveedores = await servicioProveedorByIDServicio(id)
   

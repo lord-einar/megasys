@@ -27,7 +27,7 @@ const sedePersonaGET = async (req, res) => {
 
 const sedePersonaByIDSede = async (id) => {
 
-  console.log(id)
+  console.log("id persona: ", id)
   const personas = await SedePersona.findAll({
       where: { id_sede: id },
       attributes: ["id_sedePersona"],
@@ -42,6 +42,8 @@ const sedePersonaByIDSede = async (id) => {
         },
       ],
     })
+
+    console.log(personas)
 
     return personas
 };
