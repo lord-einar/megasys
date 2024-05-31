@@ -3,6 +3,7 @@ const Empresa = require("../models/Empresa.");
 const { sedePersonaByIDSede } = require("./sede_persona");
 const { servicioBySedeID } = require("./sede_servicios");
 const { servicioProveedorByIDServicio } = require("./servicio_proveedor");
+const { inventarioBySedeID } = require("./inventario");
 
 const sedesGET = async (req, res) => {
   const sedes = await Sede.findAll({
@@ -57,14 +58,17 @@ const sedeByID = async (req, res) => {
 
   const serviciosSede = await servicioBySedeID(id)
 
-  console.log("serviciosSede: ", serviciosSede)
-
   const servicios = await servicioProveedorByIDServicio(serviciosSede)
+
+  const inventarios = await inventarioBySedeID(id);
+
+  console.log(inventarios)
   
   res.json({
     sede,
     personas,
-    servicios
+    servicios,
+    inventarios
   })
 
 }

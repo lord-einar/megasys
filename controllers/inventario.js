@@ -1,4 +1,5 @@
 const Inventario = require("../models/Inventario");
+const RemitoInventario = require("../models/Remito_Inventario");
 
 const inventarioGET = async (req, res) => {
   const inventarios = await Inventario.findAll();
@@ -54,9 +55,41 @@ const verHistoricoInventario = async (req, res) => {
   }
 };
 
+const inventarioBySedeID = async (id) => {
+  try {
+    const inventarios = await Inventario.findAll({
+      where: { id_sede: id },
+      attributes: {
+        exclude: ["createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: RemitoInventario,
+          where: { es_prestamo: true },
+          required: false  
+        }
+      ]
+    });
+
+    console.log(inventarios)
+
+    const inventariosConPrestamo = inventarios.map(inventario => {
+      // Verifica si existen registros de RemitoInventario que indican que es un préstamo
+      inventario.dataValues.es_prestamo = inventario.RemitoInventarios.length > 0;
+      return inventario;
+    });
+
+    return inventariosConPrestamo;
+  } catch (error) {
+    console.error("Error al consultar inventarios:", error);
+  }
+};
+
+
 
 module.exports = {
   inventarioGET,
   inventarioPOST,
-  verHistoricoInventario
+  verHistoricoInventario,
+  inventarioBySedeID
 };

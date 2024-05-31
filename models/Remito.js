@@ -29,10 +29,6 @@ Remito.init({
   transportista: {
     type: DataTypes.STRING,
     allowNull: false
-  },
-  es_prestamo: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
   }
 }, {
   sequelize,

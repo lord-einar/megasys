@@ -33,7 +33,6 @@ Inventario.init({
   },
   service_tag: {
     type: DataTypes.STRING,
-    allowNull: false
   },
   activo: {
     type: DataTypes.BOOLEAN,
@@ -42,7 +41,6 @@ Inventario.init({
   },
   num_serie: {
     type: DataTypes.STRING,
-    allowNull: false
   },
 }, {
   sequelize,

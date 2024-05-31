@@ -14,7 +14,7 @@ class Server {
 
     try {
       const sequelize = await dbConnect(); // Asegúrate de que la base de datos esté conectada antes de continuar.
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: false });
       this.middlewares();
       this.routes();
       // this.listen();
@@ -48,7 +48,7 @@ class Server {
     this.app.use("/roles", require("../routes/roles"));
     this.app.use("/servicios", require("../routes/servicios"));
     this.app.use("/proveedores", require("../routes/proveedores"));
-    // this.app.use("/inventario", require("../routes/inventario"));
+    this.app.use("/inventario", require("../routes/inventario"));
     this.app.use("/remitos", require("../routes/remitos"));
     this.app.use("/sedepersona", require("../routes/sede_persona"));
     this.app.use("/sedeservicio", require("../routes/sede_servicios"));
