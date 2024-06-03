@@ -33,7 +33,6 @@ const inventarioPOST = async (req, res) => {
   } catch (error) {
     res.status(500).send("Error al crear el inventario: " + error.message);
   }
-
 };
 
 const verHistoricoInventario = async (req, res) => {
@@ -43,15 +42,18 @@ const verHistoricoInventario = async (req, res) => {
     const historico = await HistoricoInventario.findAll({
       where: { id_inventario },
       include: [
-        { model: Sede, attributes: ['nombre'] },
-        { model: Remito, attributes: ['solicitante', 'fecha_remito', 'transportista'] }
-      ]
+        { model: Sede, attributes: ["nombre"] },
+        {
+          model: Remito,
+          attributes: ["solicitante", "fecha_remito", "transportista"],
+        },
+      ],
     });
 
     res.status(200).json(historico);
   } catch (error) {
-    console.error('Error al obtener el histórico del inventario:', error);
-    res.status(500).send('Error al obtener el histórico del inventario');
+    console.error("Error al obtener el histórico del inventario:", error);
+    res.status(500).send("Error al obtener el histórico del inventario");
   }
 };
 
@@ -66,16 +68,20 @@ const inventarioBySedeID = async (id) => {
         {
           model: RemitoInventario,
           where: { es_prestamo: true },
-          required: false  
-        }
-      ]
+          attributes: {
+            exclude: ["createdAt", "updatedAt"],
+          },
+          required: false,
+        },
+      ],
     });
 
-    console.log(inventarios)
+    console.log(inventarios);
 
-    const inventariosConPrestamo = inventarios.map(inventario => {
+    const inventariosConPrestamo = inventarios.map((inventario) => {
       // Verifica si existen registros de RemitoInventario que indican que es un préstamo
-      inventario.dataValues.es_prestamo = inventario.RemitoInventarios.length > 0;
+      inventario.dataValues.es_prestamo =
+        inventario.RemitoInventarios.length > 0;
       return inventario;
     });
 
@@ -85,11 +91,9 @@ const inventarioBySedeID = async (id) => {
   }
 };
 
-
-
 module.exports = {
   inventarioGET,
   inventarioPOST,
   verHistoricoInventario,
-  inventarioBySedeID
+  inventarioBySedeID,
 };
