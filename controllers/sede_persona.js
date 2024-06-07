@@ -13,7 +13,7 @@ const sedePersonaGET = async (req, res) => {
       },
       {
         model: Persona,
-        attributes: ["nombre"],
+        attributes: ["id_persona", "nombre", "email", "telefono"],
       },
       {
         model: Rol,

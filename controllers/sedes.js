@@ -7,7 +7,7 @@ const { inventarioBySedeID } = require("./inventario");
 
 const sedesGET = async (req, res) => {
   const sedes = await Sede.findAll({
-    include: [{model: Empresa, attributes: ['nombre_empresa']}]
+    include: [{model: Empresa, attributes: ['nombre']}]
   });
 
   res.json(sedes);
@@ -51,7 +51,7 @@ const sedeByID = async (req, res) => {
   const id = req.params.id
   const sede = await Sede.findByPk(id, {
     attributes: {exclude: ['id_empresa', 'createdAt', 'updatedAt']},
-    include: [{ model: Empresa, attributes: ['nombre_empresa'] }]
+    include: [{ model: Empresa, attributes: ['nombre'] }]
   });
 
   const personas = await sedePersonaByIDSede(id)
@@ -73,8 +73,34 @@ const sedeByID = async (req, res) => {
 
 }
 
+const sedesPUT = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, direccion, localidad, provincia, pais, telefono, email, ip_asignada } = req.body;
+
+  try {
+      const sede = await Sede.findByPk(id);
+
+      if (!sede) {
+          return res.status(404).json({ ok: false, msg: 'Sede no encontrada' });
+      }
+
+      await sede.update({ nombre, direccion, localidad, provincia, pais, telefono, email, ip_asignada });
+
+      res.json({
+          ok: true,
+          msg: 'Sede actualizada correctamente',
+          sede
+      });
+  } catch (error) {
+      console.error('Error al actualizar la sede:', error);
+      res.status(500).send('Error al actualizar la sede');
+  }
+};
+
+
 module.exports = {
   sedesGET,
   sedesPOST,
-  sedeByID
+  sedeByID,
+  sedesPUT
 };

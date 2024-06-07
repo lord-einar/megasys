@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 require('./config/associations')
 const Server = require('./models/server');
 

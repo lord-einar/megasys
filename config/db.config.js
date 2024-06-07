@@ -7,7 +7,7 @@ const dbConnect = () => {
   if (!sequelize) {
     sequelize = new Sequelize(
       process.env.DATABASE,
-      process.env.USER,
+      process.env.DBUSER,
       process.env.PASS,    
       {
         host: "germanojeda.ar",

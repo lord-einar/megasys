@@ -1,13 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const {
-  crearRemito,
-  verTodosLosRemitos,
-  verEquiposEnPrestamo,
-} = require("../controllers/remitos");
+const {Router} = require('express');
+const { remitosGET, remitosPOST, verEquiposEnPrestamo } = require('../controllers/remitos');
 
-router.post("/crear", crearRemito);
-router.get("/todos", verTodosLosRemitos);
+
+const router = Router();
+
+
+router.get("/", remitosGET);
+router.post("/", remitosPOST);
 router.get("/prestamos", verEquiposEnPrestamo);
 
 module.exports = router;

@@ -6,8 +6,8 @@ class Remito extends Model {}
 
 Remito.init({
   id_remito: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   id_sede: {

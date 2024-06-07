@@ -10,7 +10,7 @@ Empresa.init({
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  nombre_empresa: {
+  nombre: {
     type: DataTypes.STRING,
     allowNull: false
   }

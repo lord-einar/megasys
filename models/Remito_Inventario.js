@@ -1,4 +1,4 @@
-const { DataTypes, Model, UUIDV4 } = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
 const Inventario = require("./Inventario");
 const Remito = require("./Remito");
@@ -8,7 +8,7 @@ class RemitoInventario extends Model {}
 
 RemitoInventario.init({
   id_remito: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'Remito',

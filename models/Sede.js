@@ -1,8 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
 const dbConnect = require("../config/db.config");
-const Empresa = require("./Empresa.");
-const Inventario = require("./Inventario");
-const Remito = require("./Remito");
 const sequelize = dbConnect();  // Obtén la instancia de sequelize.
 
 class Sede extends Model {}

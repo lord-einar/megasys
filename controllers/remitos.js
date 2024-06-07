@@ -4,7 +4,7 @@ const Inventario = require("../models/Inventario");
 const HistoricoInventario = require("../models/HistoricoInventario");
 const Sede = require("../models/Sede");
 
-const verTodosLosRemitos = async (req, res) => {
+const remitosGET = async (req, res) => {
   try {
     const remitos = await Remito.findAll({
       include: [
@@ -24,8 +24,8 @@ const verTodosLosRemitos = async (req, res) => {
   }
 };
 
-const crearRemito = async (req, res) => {
-  const { id_sede, solicitante, fecha_remito, transportista, inventarios } =
+const remitosPOST = async (req, res) => {
+  const { id_sede, solicitante, fecha_remito, transportista, inventario } =
     req.body;
 
   try {
@@ -36,23 +36,25 @@ const crearRemito = async (req, res) => {
       transportista,
     });
 
-    const remitoInventarios = inventarios.map((inventario) => ({
+    console.log(inventario)
+
+    const remitoInventarios = inventario.map((item) => ({
       id_remito: nuevoRemito.id_remito,
-      id_inventario: inventario.id_inventario,
-      es_prestamo: inventario.es_prestamo,
+      id_inventario: item.id_inventario,
+      es_prestamo: item.es_prestamo,
     }));
 
     await RemitoInventario.bulkCreate(remitoInventarios);
 
     // Actualizar id_sede de los equipos y registrar en el histórico
-    for (let inventario of inventarios) {
+    for (let item of inventario) {
       await Inventario.update(
         { id_sede },
-        { where: { id_inventario: inventario.id_inventario } }
+        { where: { id_inventario: item.id_inventario } }
       );
 
       await HistoricoInventario.create({
-        id_inventario: inventario.id_inventario,
+        id_inventario: item.id_inventario,
         id_sede,
         id_remito: nuevoRemito.id_remito,
         fecha_movimiento: new Date(),
@@ -95,7 +97,7 @@ const verEquiposEnPrestamo = async (req, res) => {
 };
 
 module.exports = {
-  crearRemito,
-  verTodosLosRemitos,
+  remitosGET,
+  remitosPOST,
   verEquiposEnPrestamo,
 };
