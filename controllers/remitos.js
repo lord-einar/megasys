@@ -12,17 +12,38 @@ const remitosGET = async (req, res) => {
         {
           model: Inventario,
           through: { attributes: ["es_prestamo"] },
-          attributes: ["marca", "modelo", "tipo_articulo"],
+          attributes: ["marca", "modelo", "tipo_articulo", "num_serie", "service_tag", "activo"],
         },
       ],
     });
 
-    res.status(200).json(remitos);
+    
+    const formattedRemitos = remitos.map(remito => ({
+      id_remito: remito.id_remito,
+      id_sede: remito.id_sede,
+      sede_nombre: remito.Sede.nombre,
+      solicitante: remito.solicitante,
+      fecha_remito: remito.fecha_remito,
+      transportista: remito.transportista,
+      inventarios: remito.Inventarios.map(inventario => ({
+        marca: inventario.marca,
+        modelo: inventario.modelo,
+        tipo_articulo: inventario.tipo_articulo,
+        num_serie: inventario.num_serie,
+        service_tag: inventario.service_tag,
+        activo: inventario.activo,
+        es_prestamo: inventario.RemitoInventario.es_prestamo
+      }))
+    }));
+
+    
+    res.status(200).json(formattedRemitos);
   } catch (error) {
     console.error("Error al obtener los remitos:", error);
     res.status(500).send("Error al obtener los remitos");
   }
 };
+
 
 const remitosPOST = async (req, res) => {
   const { id_sede, solicitante, fecha_remito, transportista, inventario } =
@@ -35,8 +56,6 @@ const remitosPOST = async (req, res) => {
       fecha_remito,
       transportista,
     });
-
-    console.log(inventario)
 
     const remitoInventarios = inventario.map((item) => ({
       id_remito: nuevoRemito.id_remito,
@@ -74,8 +93,7 @@ const verEquiposEnPrestamo = async (req, res) => {
       where: { es_prestamo: true },
       include: [
         {
-          model: Inventario,
-          attributes: ["marca", "modelo", "tipo_articulo"],
+          model: Inventario
         },
         {
           model: Remito,
@@ -96,8 +114,58 @@ const verEquiposEnPrestamo = async (req, res) => {
   }
 };
 
+const remitoByID = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const remito = await Remito.findOne({
+      where: { id_remito: id },
+      include: [
+        {
+          model: Sede,
+          attributes: ["nombre"],
+        },
+        {
+          model: Inventario,
+          through: { attributes: ["es_prestamo"] },
+          attributes: ["marca", "modelo", "tipo_articulo", "num_serie", "service_tag", "activo"],
+        },
+      ],
+    });
+
+    if (!remito) {
+      return res.status(404).send("Remito no encontrado");
+    }
+
+    const formattedRemito = {
+      id_remito: remito.id_remito,
+      id_sede: remito.id_sede,
+      sede_nombre: remito.Sede.nombre,
+      solicitante: remito.solicitante,
+      fecha_remito: remito.fecha_remito,
+      transportista: remito.transportista,
+      inventarios: remito.Inventarios.map(inventario => ({
+        marca: inventario.marca,
+        modelo: inventario.modelo,
+        tipo_articulo: inventario.tipo_articulo,
+        num_serie: inventario.num_serie,
+        service_tag: inventario.service_tag,
+        activo: inventario.activo,
+        es_prestamo: inventario.RemitoInventario.es_prestamo
+      }))
+    };
+
+    res.status(200).json(formattedRemito);
+  } catch (error) {
+    console.error("Error al obtener el remito:", error);
+    res.status(500).send("Error al obtener el remito");
+  }
+};
+
+
 module.exports = {
   remitosGET,
   remitosPOST,
   verEquiposEnPrestamo,
+  remitoByID
 };
