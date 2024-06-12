@@ -14,7 +14,7 @@ class Server {
 
     try {
       const sequelize = await dbConnect(); // Asegúrate de que la base de datos esté conectada antes de continuar.
-      await sequelize.sync({ alter: false });
+      await sequelize.sync({ alter: true });
       this.middlewares();
       this.routes();
       // this.listen();

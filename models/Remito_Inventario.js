@@ -26,6 +26,13 @@ RemitoInventario.init({
   es_prestamo: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  fecha_devolucion: {
+    type: DataTypes.DATE
+  },
+  devuelto: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   sequelize,

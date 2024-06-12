@@ -15,6 +15,7 @@ const remitosGET = async (req, res) => {
           attributes: ["marca", "modelo", "tipo_articulo", "num_serie", "service_tag", "activo"],
         },
       ],
+      order: [['id_remito', 'DESC']]
     });
 
     
@@ -32,7 +33,9 @@ const remitosGET = async (req, res) => {
         num_serie: inventario.num_serie,
         service_tag: inventario.service_tag,
         activo: inventario.activo,
-        es_prestamo: inventario.RemitoInventario.es_prestamo
+        es_prestamo: inventario.RemitoInventario.es_prestamo,
+        fecha_devolucion: inventario.RemitoInventario.fecha_devolucion,
+        devuelto: inventario.RemitoInventario.devuelto
       }))
     }));
 
