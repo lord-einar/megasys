@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remito</title>
+    <style>
+        html {
+             -webkit-print-color-adjust: exact;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .remito {
+            width: 700px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #0073e6;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        header h1, header h2 {
+            margin: 0;
+        }
+
+        .info, .contact, .totals, .signature, footer {
+            margin-bottom: 20px;
+        }
+
+        .info {
+            /* display: flex;
+            justify-content: space-between; */
+            margin: 5%;
+        }
+
+        .info .column {
+            width: 30%;
+        }
+
+        .contact {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5% 0;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #0073e6;
+            color: white;
+        }
+
+        .totals {
+            text-align: right;
+        }
+
+        .signature img {
+            width: 150px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            bottom: 5%;
+        }
+    </style>
+</head>
+<body>
+    <div class="remito">
+        <header>
+            <h1>GRUPO MEGATLON</h1>
+            <h2>Departamento de Infraestructura</h2>
+        </header>
+        <div class="info">
+            <div>
+                <div><strong>ID Remito:</strong> {{id_remito}}</div>
+            </div>
+            <div>
+                <div><strong>Fecha:</strong> {{fecha_remito}}</div>
+                <strong>Sede</strong><br>
+                {{nombre_sede}}
+            </div>
+            <div>
+                <strong>Solicitante:</strong> {{solicitante}}<br>
+                <strong>Entrega:</strong> {{transportista}}
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Tipo de Artículo</th>
+                    <th>N° de serie</th>
+                    <th>Service Tag</th>
+                    <th>Es Préstamo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each inventario}}
+                <tr>
+                    <td>{{this.marca}}</td>
+                    <td>{{this.modelo}}</td>
+                    <td>{{this.tipo_articulo}}</td>
+                    <td>{{this.num_serie}}</td>
+                    <td>{{this.service_tag}}</td>
+                    <td>{{#if this.es_prestamo}}Sí{{else}}No{{/if}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        <img src="http://localhost:6060/logo_GM.png" alt="" srcset="">
+    </div>
+    <footer>
+    </footer>
+</body>
+</html>

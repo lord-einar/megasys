@@ -1,8 +1,11 @@
+const path = require('path');
 const Remito = require("../models/Remito");
 const RemitoInventario = require("../models/Remito_Inventario");
 const Inventario = require("../models/Inventario");
 const HistoricoInventario = require("../models/HistoricoInventario");
 const Sede = require("../models/Sede");
+const generatePDF = require("../utils/pdfGenerator");
+const sendEmail = require("../utils/emailSender");
 
 const remitosGET = async (req, res) => {
   try {
@@ -18,7 +21,6 @@ const remitosGET = async (req, res) => {
       order: [['id_remito', 'DESC']]
     });
 
-    
     const formattedRemitos = remitos.map(remito => ({
       id_remito: remito.id_remito,
       id_sede: remito.id_sede,
@@ -39,7 +41,6 @@ const remitosGET = async (req, res) => {
       }))
     }));
 
-    
     res.status(200).json(formattedRemitos);
   } catch (error) {
     console.error("Error al obtener los remitos:", error);
@@ -47,10 +48,8 @@ const remitosGET = async (req, res) => {
   }
 };
 
-
 const remitosPOST = async (req, res) => {
-  const { id_sede, solicitante, fecha_remito, transportista, inventario } =
-    req.body;
+  const { id_sede, solicitante, fecha_remito, transportista, inventario, email } = req.body;
 
   try {
     const nuevoRemito = await Remito.create({
@@ -82,6 +81,45 @@ const remitosPOST = async (req, res) => {
         fecha_movimiento: new Date(),
       });
     }
+
+    // Obtener datos de la sede
+    const sede = await Sede.findByPk(id_sede, {
+      attributes: ['nombre'],
+    });
+
+    // Obtener datos de los inventarios
+    const inventariosConDatos = await Promise.all(inventario.map(async (item) => {
+      const inventarioCompleto = await Inventario.findByPk(item.id_inventario, {
+        attributes: ['marca', 'modelo', 'tipo_articulo', 'service_tag', 'activo', 'num_serie'],
+      });
+      return {
+        ...inventarioCompleto.dataValues,
+        es_prestamo: item.es_prestamo,
+      };
+    }));
+
+    // Generar el PDF y guardar en la carpeta remitos
+    const pdfPath = await generatePDF({
+      id_remito: nuevoRemito.id_remito,
+      nombre_sede: sede.nombre,
+      solicitante,
+      fecha_remito,
+      transportista,
+      inventario: inventariosConDatos,
+    }, nuevoRemito.id_remito);
+
+    // Asegúrate de que 'email' está definido en req.body
+    await sendEmail({
+      to: 'ccamano@megatlon.com.ar',
+      subject: 'Nuevo Remito Generado',
+      text: 'Se ha generado un nuevo remito.',
+      attachments: [
+        {
+          filename: path.basename(pdfPath),
+          path: pdfPath
+        }
+      ]
+    });
 
     res.status(201).json(nuevoRemito);
   } catch (error) {
@@ -164,7 +202,6 @@ const remitoByID = async (req, res) => {
     res.status(500).send("Error al obtener el remito");
   }
 };
-
 
 module.exports = {
   remitosGET,

@@ -14,7 +14,13 @@ const dbConnect = () => {
         dialect: "mariadb",
         dialectOptions: {
           charset: 'utf8mb4',
-          collate: 'utf8mb6_unicode_ci'
+          collate: 'utf8mb4_unicode_ci'
+        },
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 60000, // Tiempo de espera para adquirir una conexión del pool en milisegundos
+          idle: 10000 // Tiempo de espera antes de liberar una conexión inactiva en milisegundos
         },
         define: {
           charset: 'utf8mb4',
@@ -35,7 +41,5 @@ const dbConnect = () => {
   }
   return sequelize;
 };
-
-module.exports = dbConnect;
 
 module.exports = dbConnect;
