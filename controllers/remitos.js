@@ -110,7 +110,7 @@ const remitosPOST = async (req, res) => {
 
     // Asegúrate de que 'email' está definido en req.body
     await sendEmail({
-      to: 'ccamano@megatlon.com.ar',
+      to: email,
       subject: 'Nuevo Remito Generado',
       text: 'Se ha generado un nuevo remito.',
       attachments: [
