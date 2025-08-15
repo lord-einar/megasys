@@ -1,0 +1,35 @@
+<!-- ============================================ -->
+<!-- backend/src/templates/email/remitoConfirmacion.html -->
+<!-- ============================================ -->
+<h2 style="color: #1f2937; margin-top: 0;">Confirmación de Recepción Requerida</h2>
+
+<p>Estimado/a <strong>{{solicitante_nombre}}</strong>,</p>
+
+<p>El remito <strong>{{numero_remito}}</strong> ha sido marcado como entregado y requiere su confirmación de recepción.</p>
+
+<div class="alert alert-success">
+  <strong>Estado:</strong> ENTREGADO<br>
+  <strong>Fecha de Entrega:</strong> {{fecha_entrega}}
+</div>
+
+<p>Por favor, verifique que todos los items del remito hayan sido recibidos correctamente y confirme la recepción haciendo clic en el siguiente botón:</p>
+
+<div style="text-align: center;">
+  <a href="{{confirm_url}}" class="button button-success" style="font-size: 18px; padding: 15px 40px;">
+    ✓ Confirmar Recepción
+  </a>
+</div>
+
+<div class="alert alert-warning">
+  <strong>Importante:</strong> Si detecta alguna discrepancia o faltante, por favor NO confirme la recepción y contacte inmediatamente al área de Infraestructura.
+</div>
+
+<p style="color: #6b7280; font-size: 14px;">
+  También puede acceder al sistema para ver el detalle completo del remito:
+</p>
+
+<div style="text-align: center;">
+  <a href="{{url_sistema}}/remitos/{{numero_remito}}" class="button" style="background-color: #6b7280;">
+    Ver Detalle del Remito
+  </a>
+</div>

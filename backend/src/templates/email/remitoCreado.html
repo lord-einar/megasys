@@ -1,0 +1,44 @@
+<!-- ============================================ -->
+<!-- backend/src/templates/email/remitoCreado.html -->
+<!-- ============================================ -->
+<h2 style="color: #1f2937; margin-top: 0;">Nuevo Remito Asignado</h2>
+
+<p>Estimado/a <strong>{{tecnico_nombre}}</strong>,</p>
+
+<p>Se le ha asignado un nuevo remito para su gestión:</p>
+
+<div class="alert alert-info">
+  <strong>Remito N°:</strong> {{numero_remito}}<br>
+  <strong>Fecha:</strong> {{fecha}}
+</div>
+
+<table class="info-table">
+  <tr>
+    <td>Sede Origen:</td>
+    <td>{{sede_origen}}</td>
+  </tr>
+  <tr>
+    <td>Sede Destino:</td>
+    <td>{{sede_destino}}</td>
+  </tr>
+  <tr>
+    <td>Estado Actual:</td>
+    <td><strong style="color: #f59e0b;">PREPARADO</strong></td>
+  </tr>
+</table>
+
+<p>Por favor, proceda a:</p>
+<ol>
+  <li>Retirar los items de la sede origen</li>
+  <li>Actualizar el estado a "En Tránsito" en el sistema</li>
+  <li>Entregar los items en la sede destino</li>
+  <li>Actualizar el estado a "Entregado" una vez completada la entrega</li>
+</ol>
+
+<div style="text-align: center;">
+  <a href="{{url_sistema}}/remitos/{{numero_remito}}" class="button">Ver Remito en el Sistema</a>
+</div>
+
+<p style="color: #6b7280; font-size: 14px;">
+  <em>Recuerde solicitar la firma de recepción al momento de la entrega.</em>
+</p>

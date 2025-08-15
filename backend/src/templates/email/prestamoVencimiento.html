@@ -1,0 +1,56 @@
+<!-- ============================================ -->
+<!-- backend/src/templates/email/prestamoVencimiento.html -->
+<!-- ============================================ -->
+<h2 style="color: #1f2937; margin-top: 0;">Recordatorio de Préstamo</h2>
+
+<p>Estimado/a <strong>{{usuario_nombre}}</strong>,</p>
+
+<p>Le recordamos que tiene un equipo en préstamo próximo a vencer:</p>
+
+<div class="alert alert-warning">
+  <strong>⚠️ Fecha de Vencimiento:</strong> {{fecha_vencimiento}}
+</div>
+
+<table class="info-table">
+  <tr>
+    <td>Equipo:</td>
+    <td>{{item_descripcion}}</td>
+  </tr>
+  <tr>
+    <td>Service Tag:</td>
+    <td><strong>{{service_tag}}</strong></td>
+  </tr>
+  <tr>
+    <td>Fecha de Préstamo:</td>
+    <td>{{fecha_prestamo}}</td>
+  </tr>
+  <tr>
+    <td>Días Restantes:</td>
+    <td><strong style="color: #dc2626;">{{dias_restantes}} días</strong></td>
+  </tr>
+</table>
+
+<h3 style="color: #1f2937;">Opciones Disponibles:</h3>
+
+<div style="background-color: #f9fafb; padding: 20px; border-radius: 6px; margin: 20px 0;">
+  <p style="margin-top: 0;"><strong>1. Devolver el equipo</strong></p>
+  <p style="margin-bottom: 0; color: #6b7280;">Coordine la devolución con el área de Infraestructura antes de la fecha de vencimiento.</p>
+</div>
+
+<div style="background-color: #f9fafb; padding: 20px; border-radius: 6px; margin: 20px 0;">
+  <p style="margin-top: 0;"><strong>2. Solicitar una extensión</strong></p>
+  <p style="margin-bottom: 10px; color: #6b7280;">Si necesita el equipo por más tiempo, puede solicitar una extensión desde el sistema.</p>
+  <div style="text-align: center;">
+    <a href="{{url_sistema}}/inventario/{{item_id}}/extension" class="button button-warning">
+      Solicitar Extensión
+    </a>
+  </div>
+</div>
+
+<div class="alert alert-info">
+  <strong>Nota:</strong> Si el equipo no es devuelto en la fecha indicada, se enviará una notificación a su supervisor y el préstamo quedará marcado como vencido en el sistema.
+</div>
+
+<p style="color: #6b7280; font-size: 14px;">
+  Si ya ha devuelto el equipo, por favor ignore este mensaje. Si tiene alguna consulta, contacte al área de Infraestructura.
+</p>
