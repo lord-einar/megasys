@@ -1,8 +1,10 @@
 // ============================================
-// backend/src/models/associations.js
+// backend/src/models/associations.js (ACTUALIZADO)
 // ============================================
+const Empresa = require('./Empresa');
 const Sede = require('./Sede');
 const Personal = require('./Personal');
+const Usuario = require('./Usuario');
 const Rol = require('./Rol');
 const PersonalSede = require('./PersonalSede');
 const Proveedor = require('./Proveedor');
@@ -18,22 +20,37 @@ const ExtensionPrestamo = require('./ExtensionPrestamo');
 const Auditoria = require('./Auditoria');
 
 // ============================================
-// Relaciones Personal - Sede - Rol
+// Relaciones Empresa - Sede
 // ============================================
 
-// Personal puede estar en múltiples sedes con diferentes roles
+// Una empresa tiene múltiples sedes
+Empresa.hasMany(Sede, {
+  foreignKey: 'empresa_id',
+  as: 'sedes'
+});
+
+Sede.belongsTo(Empresa, {
+  foreignKey: 'empresa_id',
+  as: 'empresa'
+});
+
+// ============================================
+// Relaciones Sede - Personal (a través de PersonalSede)
+// ============================================
+
+// Personal puede estar asignado a múltiples sedes con diferentes roles
 Personal.belongsToMany(Sede, {
   through: PersonalSede,
   foreignKey: 'personal_id',
   otherKey: 'sede_id',
-  as: 'sedes'
+  as: 'sedes_asignadas'
 });
 
 Sede.belongsToMany(Personal, {
   through: PersonalSede,
   foreignKey: 'sede_id',
   otherKey: 'personal_id',
-  as: 'personal'
+  as: 'personal_asignado'
 });
 
 // PersonalSede pertenece a Personal, Sede y Rol
@@ -52,11 +69,12 @@ PersonalSede.belongsTo(Rol, {
   as: 'rol'
 });
 
-// Un rol puede estar asignado a múltiples personas
-Rol.hasMany(PersonalSede, {
-  foreignKey: 'rol_id',
-  as: 'asignaciones'
-});
+// ============================================
+// Relaciones Usuario (Sistema)
+// ============================================
+
+// Usuario puede acceder a múltiples empresas (many-to-many implícito a través de empresas_permitidas)
+// No necesita tabla intermedia ya que usamos JSON array
 
 // ============================================
 // Relaciones Servicios
@@ -136,7 +154,7 @@ Sede.hasMany(Inventario, {
   as: 'inventarios'
 });
 
-// Un inventario puede estar prestado a un usuario
+// Un inventario puede estar prestado a personal
 Inventario.belongsTo(Personal, {
   foreignKey: 'usuario_prestamo_id',
   as: 'usuario_prestamo'
@@ -178,18 +196,19 @@ Sede.hasMany(Remito, {
   as: 'remitos_recibidos'
 });
 
-// Un remito tiene un solicitante y puede tener un técnico asignado
-Remito.belongsTo(Personal, {
+// Un remito es creado por un USUARIO del sistema (no personal)
+Remito.belongsTo(Usuario, {
   foreignKey: 'solicitante_id',
   as: 'solicitante'
 });
 
+// Un remito puede tener un técnico asignado (que es personal, no usuario)
 Remito.belongsTo(Personal, {
   foreignKey: 'tecnico_asignado_id',
   as: 'tecnico'
 });
 
-Personal.hasMany(Remito, {
+Usuario.hasMany(Remito, {
   foreignKey: 'solicitante_id',
   as: 'remitos_solicitados'
 });
@@ -214,17 +233,6 @@ Inventario.belongsToMany(Remito, {
   as: 'remitos'
 });
 
-// RemitoInventario pertenece a Remito e Inventario
-RemitoInventario.belongsTo(Remito, {
-  foreignKey: 'remito_id',
-  as: 'remito'
-});
-
-RemitoInventario.belongsTo(Inventario, {
-  foreignKey: 'inventario_id',
-  as: 'item'
-});
-
 // ============================================
 // Relaciones Historial Inventario
 // ============================================
@@ -246,11 +254,6 @@ HistorialInventario.belongsTo(Remito, {
   as: 'remito'
 });
 
-Remito.hasMany(HistorialInventario, {
-  foreignKey: 'remito_id',
-  as: 'historiales'
-});
-
 // Un historial tiene sede origen y destino
 HistorialInventario.belongsTo(Sede, {
   foreignKey: 'sede_origen_id',
@@ -262,13 +265,13 @@ HistorialInventario.belongsTo(Sede, {
   as: 'sede_destino'
 });
 
-// Un historial tiene un usuario que realizó el movimiento
-HistorialInventario.belongsTo(Personal, {
+// Un historial es registrado por un USUARIO del sistema
+HistorialInventario.belongsTo(Usuario, {
   foreignKey: 'usuario_id',
   as: 'usuario'
 });
 
-Personal.hasMany(HistorialInventario, {
+Usuario.hasMany(HistorialInventario, {
   foreignKey: 'usuario_id',
   as: 'movimientos_realizados'
 });
@@ -288,13 +291,14 @@ ExtensionPrestamo.belongsTo(Inventario, {
   as: 'inventario'
 });
 
-// Una extensión tiene un solicitante y un aprobador
+// Una extensión es solicitada por personal
 ExtensionPrestamo.belongsTo(Personal, {
   foreignKey: 'solicitante_id',
   as: 'solicitante'
 });
 
-ExtensionPrestamo.belongsTo(Personal, {
+// Una extensión es aprobada por un USUARIO del sistema
+ExtensionPrestamo.belongsTo(Usuario, {
   foreignKey: 'aprobado_por_id',
   as: 'aprobador'
 });
@@ -304,7 +308,7 @@ Personal.hasMany(ExtensionPrestamo, {
   as: 'extensiones_solicitadas'
 });
 
-Personal.hasMany(ExtensionPrestamo, {
+Usuario.hasMany(ExtensionPrestamo, {
   foreignKey: 'aprobado_por_id',
   as: 'extensiones_aprobadas'
 });
@@ -313,13 +317,13 @@ Personal.hasMany(ExtensionPrestamo, {
 // Relaciones Auditoría
 // ============================================
 
-// Una auditoría tiene un usuario que realizó la acción
-Auditoria.belongsTo(Personal, {
+// Una auditoría es realizada por un USUARIO del sistema
+Auditoria.belongsTo(Usuario, {
   foreignKey: 'usuario_id',
   as: 'usuario'
 });
 
-Personal.hasMany(Auditoria, {
+Usuario.hasMany(Auditoria, {
   foreignKey: 'usuario_id',
   as: 'acciones_auditadas'
 });
@@ -329,8 +333,10 @@ Personal.hasMany(Auditoria, {
 // ============================================
 
 module.exports = {
+  Empresa,
   Sede,
   Personal,
+  Usuario,
   Rol,
   PersonalSede,
   Proveedor,

@@ -1,5 +1,5 @@
 // ============================================
-// backend/src/models/Personal.js
+// backend/src/models/Personal.js (ACTUALIZADO)
 // ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
@@ -20,8 +20,6 @@ const Personal = sequelize.define('personal', {
   },
   email: {
     type: DataTypes.STRING(150),
-    allowNull: false,
-    unique: true,
     validate: {
       isEmail: true
     }
@@ -29,31 +27,13 @@ const Personal = sequelize.define('personal', {
   telefono: {
     type: DataTypes.STRING(50)
   },
-  azure_id: {
-    type: DataTypes.STRING(255),
-    unique: true
-  },
-  foto_url: {
-    type: DataTypes.STRING(500)
-  },
-  grupos_ad: {
-    type: DataTypes.JSON,
-    defaultValue: []
-  },
   activo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   }
 }, {
   tableName: 'personal',
-  indexes: [
-    {
-      fields: ['email']
-    },
-    {
-      fields: ['azure_id']
-    }
-  ]
+  comment: 'Personal que trabaja en las sedes (no son usuarios del sistema)'
 });
 
 module.exports = Personal;

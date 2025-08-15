@@ -1,9 +1,11 @@
 // ============================================
-// backend/src/models/index.js
+// backend/src/models/index.js (ACTUALIZADO)
 // ============================================
 const sequelize = require('../config/database');
 
 // Importar modelos
+const Empresa = require('./Empresa');
+const Usuario = require('./Usuario');
 const Sede = require('./Sede');
 const Personal = require('./Personal');
 const Rol = require('./Rol');
@@ -44,6 +46,8 @@ module.exports = {
   sequelize,
   syncDatabase,
   // Modelos
+  Empresa,
+  Usuario,
   Sede,
   Personal,
   Rol,

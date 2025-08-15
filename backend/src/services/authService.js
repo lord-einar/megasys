@@ -1,28 +1,12 @@
 // ============================================
-// backend/src/services/authService.js
+// backend/src/services/authService.js (ACTUALIZADO)
 // ============================================
 const jwt = require('jsonwebtoken');
 const { confidentialClientApplication, SCOPES, REDIRECT_URI } = require('../config/auth');
-const { Personal } = require('../models');
+const { Usuario, Empresa } = require('../models');
 const { logger } = require('../utils/logger');
 
 class AuthService {
-
-  async logChange(modelo, registroId, accion, valoresAnteriores, valoresNuevos, usuario, meta) {
-    await Auditoria.create({
-      tabla_afectada: modelo,
-      registro_id: registroId,
-      accion,
-      valores_anteriores: valoresAnteriores,
-      valores_nuevos: valoresNuevos,
-      usuario_id: usuario.id,
-      ip_usuario: meta.ip,
-      user_agent: meta.userAgent,
-      endpoint: meta.endpoint,
-      fecha_hora: new Date()
-    });
-  }
-
   /**
    * Generar URL de autenticación de Azure AD
    */
@@ -60,13 +44,13 @@ class AuthService {
       const userInfo = this.extractUserInfo(response);
       
       // Buscar o crear usuario en la base de datos
-      const user = await this.findOrCreateUser(userInfo);
+      const usuario = await this.findOrCreateUsuario(userInfo);
       
       // Generar JWT propio
-      const token = this.generateJWT(user);
+      const token = this.generateJWT(usuario);
       
       return {
-        user,
+        usuario,
         token,
         azureToken: response.accessToken
       };
@@ -83,12 +67,16 @@ class AuthService {
     const idToken = tokenResponse.idToken;
     const decodedToken = jwt.decode(idToken);
     
+    // Extraer IDs de grupos AD (no nombres)
+    const gruposIds = decodedToken.groups || [];
+    
     return {
       azure_id: decodedToken.oid,
+      azure_tenant_id: decodedToken.tid,
       email: decodedToken.preferred_username || decodedToken.email,
       nombre: decodedToken.given_name || decodedToken.name?.split(' ')[0],
       apellido: decodedToken.family_name || decodedToken.name?.split(' ').slice(1).join(' '),
-      grupos_ad: decodedToken.groups || [],
+      grupos_ad_ids: gruposIds, // Array de IDs de grupos
       foto_url: decodedToken.picture
     };
   }
@@ -96,24 +84,47 @@ class AuthService {
   /**
    * Buscar o crear usuario en la base de datos
    */
-  async findOrCreateUser(userInfo) {
+  async findOrCreateUsuario(userInfo) {
     try {
-      let user = await Personal.findOne({
+      let usuario = await Usuario.findOne({
         where: { azure_id: userInfo.azure_id }
       });
       
-      if (!user) {
-        user = await Personal.create(userInfo);
+      if (!usuario) {
+        // Crear nuevo usuario
+        usuario = await Usuario.create({
+          ...userInfo,
+          ultimo_acceso: new Date(),
+          activo: true,
+          es_super_admin: false,
+          empresas_permitidas: [], // Se debe configurar manualmente
+          preferencias: {
+            tema: 'light',
+            idioma: 'es',
+            notificaciones_email: true
+          }
+        });
+        
         logger.info(`Nuevo usuario creado: ${userInfo.email}`);
       } else {
         // Actualizar información del usuario
-        await user.update({
-          grupos_ad: userInfo.grupos_ad,
-          foto_url: userInfo.foto_url
+        await usuario.update({
+          grupos_ad_ids: userInfo.grupos_ad_ids,
+          foto_url: userInfo.foto_url,
+          ultimo_acceso: new Date()
         });
+        
+        logger.info(`Usuario actualizado: ${userInfo.email}`);
       }
       
-      return user;
+      // Verificar que el usuario tenga acceso a al menos una empresa
+      if (!usuario.es_super_admin && (!usuario.empresas_permitidas || usuario.empresas_permitidas.length === 0)) {
+        logger.warn(`Usuario ${usuario.email} no tiene empresas asignadas`);
+        // Podemos asignar una empresa por defecto o lanzar un error
+        // throw new Error('Usuario sin empresas asignadas. Contacte al administrador.');
+      }
+      
+      return usuario;
     } catch (error) {
       logger.error('Error al buscar/crear usuario:', error);
       throw error;
@@ -123,13 +134,15 @@ class AuthService {
   /**
    * Generar JWT propio
    */
-  generateJWT(user) {
+  generateJWT(usuario) {
     const payload = {
-      id: user.id,
-      email: user.email,
-      nombre: user.nombre,
-      apellido: user.apellido,
-      grupos_ad: user.grupos_ad
+      id: usuario.id,
+      email: usuario.email,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      grupos_ad_ids: usuario.grupos_ad_ids,
+      es_super_admin: usuario.es_super_admin,
+      empresas_permitidas: usuario.empresas_permitidas
     };
     
     return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -145,14 +158,14 @@ class AuthService {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
       // Verificar que el usuario sigue activo
-      const user = await Personal.findOne({
+      const usuario = await Usuario.findOne({
         where: { 
           id: decoded.id,
           activo: true
         }
       });
       
-      if (!user) {
+      if (!usuario) {
         throw new Error('Usuario no encontrado o inactivo');
       }
       
@@ -164,12 +177,73 @@ class AuthService {
   }
   
   /**
+   * Verificar si el usuario tiene acceso a una empresa específica
+   */
+  async verifyEmpresaAccess(usuarioId, empresaId) {
+    try {
+      const usuario = await Usuario.findByPk(usuarioId);
+      
+      if (!usuario) {
+        return false;
+      }
+      
+      // Super admin tiene acceso a todas las empresas
+      if (usuario.es_super_admin) {
+        return true;
+      }
+      
+      // Verificar si la empresa está en la lista de permitidas
+      return usuario.empresas_permitidas.includes(empresaId);
+    } catch (error) {
+      logger.error('Error verificando acceso a empresa:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Obtener empresas del usuario
+   */
+  async getUsuarioEmpresas(usuarioId) {
+    try {
+      const usuario = await Usuario.findByPk(usuarioId);
+      
+      if (!usuario) {
+        throw new Error('Usuario no encontrado');
+      }
+      
+      // Si es super admin, devolver todas las empresas
+      if (usuario.es_super_admin) {
+        return await Empresa.findAll({
+          where: { activa: true },
+          order: [['nombre', 'ASC']]
+        });
+      }
+      
+      // Si no, devolver solo las empresas permitidas
+      if (usuario.empresas_permitidas && usuario.empresas_permitidas.length > 0) {
+        return await Empresa.findAll({
+          where: {
+            id: usuario.empresas_permitidas,
+            activa: true
+          },
+          order: [['nombre', 'ASC']]
+        });
+      }
+      
+      return [];
+    } catch (error) {
+      logger.error('Error obteniendo empresas del usuario:', error);
+      throw error;
+    }
+  }
+  
+  /**
    * Cerrar sesión
    */
-  async logout(userId) {
+  async logout(usuarioId) {
     try {
       // Aquí podrías invalidar el token en una lista negra si lo necesitas
-      logger.info(`Usuario ${userId} cerró sesión`);
+      logger.info(`Usuario ${usuarioId} cerró sesión`);
       return true;
     } catch (error) {
       logger.error('Error en logout:', error);
