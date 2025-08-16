@@ -1,5 +1,4 @@
-// backend/src/models/Remito.js
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Remito = sequelize.define('remito', {
@@ -8,61 +7,112 @@ const Remito = sequelize.define('remito', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  // BIGINT y default desde la secuencia creada en la migración
   numero_remito: {
-    type: DataTypes.BIGINT,
+    type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true,
-    defaultValue: Sequelize.literal(`nextval('remitos_numero_seq')`)
+    unique: true
   },
   fecha: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
-  // FKs: NO poner defaultValue en foreign keys
   sede_origen_id: {
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'sedes',
+      key: 'id'
+    }
   },
   sede_destino_id: {
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'sedes',
+      key: 'id'
+    }
   },
-  // Quien solicita → es “personal” (no usuario)
   solicitante_id: {
     type: DataTypes.UUID,
-    allowNull: false
-  },
-  // Quien crea/asigna/toca → es “usuario” del sistema
-  creado_por_id: {
-    type: DataTypes.UUID,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'personal',
+      key: 'id'
+    }
   },
   tecnico_asignado_id: {
     type: DataTypes.UUID,
-    allowNull: true
+    allowNull: true,
+    references: {
+      model: 'personal',
+      key: 'id'
+    }
+  },
+  creado_por_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'usuarios',
+      key: 'id'
+    }
   },
   estado: {
     type: DataTypes.ENUM('preparado', 'en_transito', 'entregado', 'confirmado'),
     allowNull: false,
     defaultValue: 'preparado'
   },
-  pdf_entrega_path: DataTypes.STRING(500),
-  pdf_confirmacion_path: DataTypes.STRING(500),
-  fecha_preparacion: DataTypes.DATE,
-  fecha_transito: DataTypes.DATE,
-  fecha_entrega: DataTypes.DATE,
-  fecha_confirmacion: DataTypes.DATE,
-  token_confirmacion: { type: DataTypes.STRING(255), unique: true },
-  observaciones: DataTypes.TEXT
+  pdf_entrega_path: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  pdf_confirmacion_path: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  fecha_preparacion: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  fecha_transito: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  fecha_entrega: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  fecha_confirmacion: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  token_confirmacion: {
+    type: DataTypes.STRING(255),
+    unique: true,
+    allowNull: true
+  },
+  observaciones: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  }
 }, {
   tableName: 'remitos',
+  timestamps: true,
+  underscored: true,
   indexes: [
-    { unique: true, fields: ['numero_remito'] },
-    { fields: ['estado'] },
-    { fields: ['fecha'] },
-    { fields: ['sede_origen_id', 'sede_destino_id'] }
+    {
+      unique: true,
+      fields: ['numero_remito']
+    },
+    {
+      fields: ['estado']
+    },
+    {
+      fields: ['fecha']
+    },
+    {
+      fields: ['sede_origen_id', 'sede_destino_id']
+    }
   ]
 });
 

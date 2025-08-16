@@ -16,6 +16,7 @@ const { logger } = require('../utils/logger');
 const { withTransaction, generateRemitoNumber, generateConfirmationToken } = require('../utils/helpers');
 const { REMITO_ESTADOS, INVENTARIO_ESTADOS, TIPO_MOVIMIENTO } = require('../utils/constants');
 const emailService = require('./emailService');
+const pdfService = require('./pdfService');  
 
 class RemitoService {
   /**

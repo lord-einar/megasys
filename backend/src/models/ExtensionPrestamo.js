@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/ExtensionPrestamo.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,11 +5,10 @@ const ExtensionPrestamo = sequelize.define('extension_prestamo', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   inventario_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'inventario',
@@ -32,24 +28,29 @@ const ExtensionPrestamo = sequelize.define('extension_prestamo', {
     allowNull: false
   },
   solicitante_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'personal',
       key: 'id'
     }
   },
-aprobado_por_id: {
-  type: DataTypes.INTEGER,
-  references: { model: 'usuarios', key: 'id' }
-},
+  aprobado_por_id: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'usuarios',
+      key: 'id'
+    }
+  },
   fecha_solicitud: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
   fecha_aprobacion: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    allowNull: true
   },
   estado: {
     type: DataTypes.ENUM('pendiente', 'aprobada', 'rechazada'),
@@ -57,6 +58,8 @@ aprobado_por_id: {
   }
 }, {
   tableName: 'extensiones_prestamo',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['inventario_id']

@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/Inventario.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,12 +5,10 @@ const Inventario = sequelize.define('inventario', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   tipo_articulo_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'tipo_articulos',
@@ -29,19 +24,22 @@ const Inventario = sequelize.define('inventario', {
     allowNull: false
   },
   numero_serie: {
-    type: DataTypes.STRING(150)
+    type: DataTypes.STRING(150),
+    allowNull: true,
+    unique: true
   },
   service_tag: {
     type: DataTypes.STRING(150),
-    unique: true,
-    allowNull: false
+    allowNull: true,  // CAMBIADO: Ahora permite NULL
+    unique: true
   },
   activo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
   sede_actual_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'sedes',
       key: 'id'
@@ -52,34 +50,40 @@ const Inventario = sequelize.define('inventario', {
     defaultValue: false
   },
   fecha_devolucion: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    allowNull: true
   },
   devuelto: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
   remito_prestamo_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'remitos',
       key: 'id'
     }
   },
   fecha_devolucion_extendida: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    allowNull: true
   },
   usuario_prestamo_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'personal',
       key: 'id'
     }
   },
   observaciones_prestamo: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   observaciones: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    allowNull: true
   },
   fecha_ingreso: {
     type: DataTypes.DATE,
@@ -91,10 +95,26 @@ const Inventario = sequelize.define('inventario', {
   }
 }, {
   tableName: 'inventario',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       unique: true,
-      fields: ['service_tag']
+      fields: ['service_tag'],
+      where: {
+        service_tag: {
+          [DataTypes.Op.ne]: null
+        }
+      }
+    },
+    {
+      unique: true,
+      fields: ['numero_serie'],
+      where: {
+        numero_serie: {
+          [DataTypes.Op.ne]: null
+        }
+      }
     },
     {
       fields: ['sede_actual_id']

@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/Usuario.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,8 +5,7 @@ const Usuario = sequelize.define('usuario', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   nombre: {
     type: DataTypes.STRING(100),
@@ -33,10 +29,12 @@ const Usuario = sequelize.define('usuario', {
     allowNull: false
   },
   azure_tenant_id: {
-    type: DataTypes.STRING(255)
+    type: DataTypes.STRING(255),
+    allowNull: true
   },
   foto_url: {
-    type: DataTypes.STRING(500)
+    type: DataTypes.STRING(500),
+    allowNull: true
   },
   grupos_ad_ids: {
     type: DataTypes.JSON,
@@ -44,7 +42,8 @@ const Usuario = sequelize.define('usuario', {
     comment: 'Array de IDs de grupos de Azure AD'
   },
   ultimo_acceso: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    allowNull: true
   },
   activo: {
     type: DataTypes.BOOLEAN,
@@ -57,7 +56,7 @@ const Usuario = sequelize.define('usuario', {
   empresas_permitidas: {
     type: DataTypes.JSON,
     defaultValue: [],
-    comment: 'Array de IDs de empresas a las que tiene acceso'
+    comment: 'Array de UUIDs de empresas a las que tiene acceso'
   },
   preferencias: {
     type: DataTypes.JSON,
@@ -69,19 +68,8 @@ const Usuario = sequelize.define('usuario', {
   }
 }, {
   tableName: 'usuarios',
-  indexes: [
-    {
-      unique: true,
-      fields: ['email']
-    },
-    {
-      unique: true,
-      fields: ['azure_id']
-    },
-    {
-      fields: ['activo']
-    }
-  ]
+  timestamps: true,
+  underscored: true
 });
 
 module.exports = Usuario;

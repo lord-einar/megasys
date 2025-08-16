@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/Sede.js (ACTUALIZADO)
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,12 +5,10 @@ const Sede = sequelize.define('sede', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   empresa_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'empresas',
@@ -26,6 +21,7 @@ const Sede = sequelize.define('sede', {
   },
   codigo_sede: {
     type: DataTypes.STRING(20),
+    allowNull: true,
     comment: 'Código único de identificación de la sede'
   },
   direccion: {
@@ -41,7 +37,8 @@ const Sede = sequelize.define('sede', {
     allowNull: false
   },
   codigo_postal: {
-    type: DataTypes.STRING(20)
+    type: DataTypes.STRING(20),
+    allowNull: true
   },
   pais: {
     type: DataTypes.STRING(100),
@@ -49,21 +46,23 @@ const Sede = sequelize.define('sede', {
     defaultValue: 'Argentina'
   },
   telefono: {
-    type: DataTypes.STRING(50)
+    type: DataTypes.STRING(50),
+    allowNull: true
   },
   email_sede: {
     type: DataTypes.STRING(150),
+    allowNull: true,
     validate: {
       isEmail: true
     }
   },
   ip_sede: {
     type: DataTypes.STRING(45),
+    allowNull: true,
     validate: {
       isIP: true
     }
   },
-
   es_casa_central: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
@@ -82,16 +81,17 @@ const Sede = sequelize.define('sede', {
   }
 }, {
   tableName: 'sedes',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       unique: true,
-      fields: ['empresa_id', 'codigo_sede']
-    },
-    {
-      fields: ['empresa_id']
-    },
-    {
-      fields: ['activa']
+      fields: ['empresa_id', 'codigo_sede'],
+      where: {
+        codigo_sede: {
+          [DataTypes.Op.ne]: null
+        }
+      }
     }
   ]
 });

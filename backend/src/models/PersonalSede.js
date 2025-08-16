@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/PersonalSede.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,12 +5,10 @@ const PersonalSede = sequelize.define('personal_sede', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   personal_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'personal',
@@ -22,7 +17,6 @@ const PersonalSede = sequelize.define('personal_sede', {
   },
   sede_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'sedes',
@@ -31,7 +25,6 @@ const PersonalSede = sequelize.define('personal_sede', {
   },
   rol_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'roles',
@@ -44,7 +37,8 @@ const PersonalSede = sequelize.define('personal_sede', {
     defaultValue: DataTypes.NOW
   },
   fecha_fin: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    allowNull: true
   },
   activo: {
     type: DataTypes.BOOLEAN,
@@ -52,6 +46,8 @@ const PersonalSede = sequelize.define('personal_sede', {
   }
 }, {
   tableName: 'personal_sede',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['personal_id', 'sede_id', 'activo']

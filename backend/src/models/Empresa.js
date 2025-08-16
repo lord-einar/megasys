@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/Empresa.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,8 +5,7 @@ const Empresa = sequelize.define('empresa', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   nombre: {
     type: DataTypes.STRING(150),
@@ -29,25 +25,30 @@ const Empresa = sequelize.define('empresa', {
     }
   },
   direccion_fiscal: {
-    type: DataTypes.STRING(255)
+    type: DataTypes.STRING(255),
+    allowNull: true
   },
   telefono_principal: {
-    type: DataTypes.STRING(50)
+    type: DataTypes.STRING(50),
+    allowNull: true
   },
   email_corporativo: {
     type: DataTypes.STRING(150),
+    allowNull: true,
     validate: {
       isEmail: true
     }
   },
   sitio_web: {
     type: DataTypes.STRING(255),
+    allowNull: true,
     validate: {
       isUrl: true
     }
   },
   logo_url: {
-    type: DataTypes.STRING(500)
+    type: DataTypes.STRING(500),
+    allowNull: true
   },
   activa: {
     type: DataTypes.BOOLEAN,
@@ -63,15 +64,8 @@ const Empresa = sequelize.define('empresa', {
   }
 }, {
   tableName: 'empresas',
-  indexes: [
-    {
-      unique: true,
-      fields: ['cuit']
-    },
-    {
-      fields: ['activa']
-    }
-  ]
+  timestamps: true,
+  underscored: true
 });
 
 module.exports = Empresa;

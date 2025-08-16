@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/Personal.js (ACTUALIZADO)
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,8 +5,7 @@ const Personal = sequelize.define('personal', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   nombre: {
     type: DataTypes.STRING(100),
@@ -21,12 +17,14 @@ const Personal = sequelize.define('personal', {
   },
   email: {
     type: DataTypes.STRING(150),
+    allowNull: true,
     validate: {
       isEmail: true
     }
   },
   telefono: {
-    type: DataTypes.STRING(50)
+    type: DataTypes.STRING(50),
+    allowNull: true
   },
   activo: {
     type: DataTypes.BOOLEAN,
@@ -34,6 +32,8 @@ const Personal = sequelize.define('personal', {
   }
 }, {
   tableName: 'personal',
+  timestamps: true,
+  underscored: true,
   comment: 'Personal que trabaja en las sedes (no son usuarios del sistema)'
 });
 

@@ -1,9 +1,7 @@
-// ============================================
-// backend/src/models/index.js (ACTUALIZADO)
-// ============================================
 const sequelize = require('../config/database');
+const { Sequelize } = require('sequelize');
 
-// Importar modelos
+// Importar todos los modelos
 const Empresa = require('./Empresa');
 const Usuario = require('./Usuario');
 const Sede = require('./Sede');
@@ -25,18 +23,26 @@ const Auditoria = require('./Auditoria');
 // Cargar asociaciones
 require('./associations');
 
-// Función para sincronizar la base de datos
-const syncDatabase = async (force = false) => {
+// Función helper para sincronizar
+const syncDatabase = async (options = {}) => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conexión a la base de datos establecida correctamente.');
+    console.log('✅ Conexión a BD establecida');
     
-    await sequelize.sync({ force, alter: !force });
-    console.log('✅ Modelos sincronizados con la base de datos.');
+    if (process.env.NODE_ENV === 'development' && options.force) {
+      await sequelize.sync({ force: true });
+      console.log('✅ BD recreada (force: true)');
+    } else if (process.env.NODE_ENV === 'development' && options.alter) {
+      await sequelize.sync({ alter: true });
+      console.log('✅ BD sincronizada (alter: true)');
+    } else {
+      // En producción no hacer sync automático
+      console.log('📝 Producción: use migraciones para cambios de esquema');
+    }
     
     return true;
   } catch (error) {
-    console.error('❌ Error al conectar/sincronizar la base de datos:', error);
+    console.error('❌ Error conectando a BD:', error);
     throw error;
   }
 };
@@ -44,8 +50,9 @@ const syncDatabase = async (force = false) => {
 // Exportar todo
 module.exports = {
   sequelize,
+  Sequelize,
   syncDatabase,
-  // Modelos
+  // Modelos individuales
   Empresa,
   Usuario,
   Sede,

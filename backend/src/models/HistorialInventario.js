@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/models/HistorialInventario.js
-// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,11 +5,10 @@ const HistorialInventario = sequelize.define('historial_inventario', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
   inventario_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'inventario',
@@ -20,21 +16,24 @@ const HistorialInventario = sequelize.define('historial_inventario', {
     }
   },
   remito_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'remitos',
       key: 'id'
     }
   },
   sede_origen_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'sedes',
       key: 'id'
     }
   },
   sede_destino_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    allowNull: true,
     references: {
       model: 'sedes',
       key: 'id'
@@ -49,16 +48,22 @@ const HistorialInventario = sequelize.define('historial_inventario', {
     type: DataTypes.ENUM('ingreso', 'egreso', 'transferencia', 'baja', 'prestamo', 'devolucion'),
     allowNull: false
   },
-usuario_id: {
-  type: DataTypes.UUID,
-  allowNull: false,
-  references: { model: 'usuarios', key: 'id' }
-},
+  usuario_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'usuarios',
+      key: 'id'
+    }
+  },
   observaciones: {
-    type: DataTypes.TEXT
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'historial_inventario',
+  timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['inventario_id']

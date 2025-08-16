@@ -1,6 +1,3 @@
-// ============================================
-// backend/src/config/database.js
-// ============================================
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
@@ -20,8 +17,9 @@ const sequelize = new Sequelize({
   },
   define: {
     timestamps: true,
-    underscored: true,
-    freezeTableName: true
+    underscored: true,    // Usa snake_case en BD
+    freezeTableName: true, // No pluraliza nombres de tablas
+    paranoid: false       // No usa soft deletes por defecto
   }
 });
 
