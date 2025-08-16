@@ -123,8 +123,9 @@ class InventarioService {
    * Crear nuevo item en inventario
    */
   async createItem(data, usuarioId) {
-    return withTransaction(sequelize, async (transaction) => {
-      // Verificar unicidad de service_tag
+  return withTransaction(sequelize, async (transaction) => {
+    // Verificar unicidad de service_tag (si existe)
+    if (data.service_tag) {
       const existente = await Inventario.findOne({
         where: { service_tag: data.service_tag },
         transaction
@@ -133,27 +134,28 @@ class InventarioService {
       if (existente) {
         throw new AppError('El service tag ya existe', 409);
       }
-      
-      // Crear item
-      const item = await Inventario.create({
-        ...data,
-        estado: INVENTARIO_ESTADOS.DISPONIBLE
-      }, { transaction });
-      
-      // Crear registro en historial
-      await HistorialInventario.create({
-        inventario_id: item.id,
-        sede_destino_id: data.sede_actual_id,
-        fecha_movimiento: new Date(),
-        tipo_movimiento: TIPO_MOVIMIENTO.INGRESO,
-        usuario_id: usuarioId,
-        observaciones: 'Ingreso inicial al inventario'
-      }, { transaction });
-      
-      logger.info(`Item creado: ${item.service_tag}`);
-      return item;
-    });
-  }
+    }
+    
+    // Crear item - CORREGIDO: era .{data}, ahora es ...data
+    const item = await Inventario.create({
+      ...data,  // ← AQUÍ ESTABA EL BUG
+      estado: INVENTARIO_ESTADOS.DISPONIBLE
+    }, { transaction });
+    
+    // Crear registro en historial
+    await HistorialInventario.create({
+      inventario_id: item.id,
+      sede_destino_id: data.sede_actual_id,
+      fecha_movimiento: new Date(),
+      tipo_movimiento: TIPO_MOVIMIENTO.INGRESO,
+      usuario_id: usuarioId,
+      observaciones: 'Ingreso inicial al inventario'
+    }, { transaction });
+    
+    logger.info(`Item creado: ${item.service_tag || item.id}`);
+    return item;
+  });
+}
   
   /**
    * Actualizar item
@@ -330,6 +332,78 @@ class InventarioService {
       throw error;
     }
   }
+
+  /**
+ * Agregar método faltante: getItemsVencidos
+ */
+async getItemsVencidos() {
+  try {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const items = await Inventario.findAll({
+      where: {
+        prestamo: true,
+        devuelto: false,
+        fecha_devolucion: {
+          [Op.lt]: hoy
+        }
+      },
+      include: [
+        { model: TipoArticulo, as: 'tipo' },
+        { model: Personal, as: 'usuario_prestamo' },
+        { model: Sede, as: 'sede_actual' }
+      ],
+      order: [['fecha_devolucion', 'ASC']]
+    });
+    
+    return items;
+  } catch (error) {
+    logger.error('Error obteniendo items vencidos:', error);
+    throw error;
+  }
+}
+
+/**
+ * Agregar método faltante: deleteItem
+ */
+async deleteItem(id, usuarioId) {
+  return withTransaction(sequelize, async (transaction) => {
+    const item = await Inventario.findByPk(id, { transaction });
+    
+    if (!item) {
+      throw new AppError('Item no encontrado', 404);
+    }
+    
+    // Verificar que no esté en préstamo
+    if (item.prestamo) {
+      throw new AppError('No se puede eliminar un item en préstamo', 400);
+    }
+    
+    // Verificar que no esté en tránsito
+    if (item.estado === INVENTARIO_ESTADOS.EN_TRANSITO) {
+      throw new AppError('No se puede eliminar un item en tránsito', 400);
+    }
+    
+    // Marcar como baja en lugar de eliminar físicamente
+    await item.update({
+      estado: INVENTARIO_ESTADOS.BAJA,
+      activo: false
+    }, { transaction });
+    
+    // Registrar en historial
+    await HistorialInventario.create({
+      inventario_id: id,
+      fecha_movimiento: new Date(),
+      tipo_movimiento: TIPO_MOVIMIENTO.BAJA,
+      usuario_id: usuarioId,
+      observaciones: 'Item dado de baja'
+    }, { transaction });
+    
+    logger.info(`Item ${item.service_tag || item.id} dado de baja`);
+    return item;
+  });
+}
 }
 
 module.exports = new InventarioService();

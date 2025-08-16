@@ -1,19 +1,23 @@
 // ============================================
-// backend/src/routes/index.js
+// backend/src/routes/index.js (ACTUALIZADO)
 // ============================================
 const router = require('express').Router();
 
 // Importar rutas
 const authRoutes = require('./authRoutes');
 const sedeRoutes = require('./sedeRoutes');
+const personalRoutes = require('./personalRoutes');
 const inventarioRoutes = require('./inventarioRoutes');
 const remitoRoutes = require('./remitoRoutes');
+const dashboardRoutes = require('./dashboardRoutes');
 
 // Registrar rutas
 router.use('/auth', authRoutes);
 router.use('/sedes', sedeRoutes);
+router.use('/personal', personalRoutes);
 router.use('/inventario', inventarioRoutes);
 router.use('/remitos', remitoRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 // Ruta raíz de la API
 router.get('/', (req, res) => {
@@ -23,9 +27,20 @@ router.get('/', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       sedes: '/api/sedes',
+      personal: '/api/personal',
       inventario: '/api/inventario',
-      remitos: '/api/remitos'
+      remitos: '/api/remitos',
+      dashboard: '/api/dashboard'
     }
+  });
+});
+
+// Ruta de health check
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'OK',
+    timestamp: new Date().toISOString()
   });
 });
 

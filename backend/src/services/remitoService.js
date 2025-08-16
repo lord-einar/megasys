@@ -149,13 +149,15 @@ async createRemito(data, solicitanteId, usuarioId) {
       throw new AppError('Algunos items no están disponibles en la sede origen', 400);
     }
 
-    // Crear remito
+    // Crear remito - CORREGIDO: agregar creado_por_id y tecnico_asignado_id opcional
     const nuevoRemito = await Remito.create({
       numero_remito: generateRemitoNumber(),
       fecha: new Date(),
       sede_origen_id: data.sede_origen_id,
       sede_destino_id: data.sede_destino_id,
-      solicitante_id: solicitanteId,             // <- Personal
+      solicitante_id: solicitanteId,             // Personal que solicita
+      creado_por_id: usuarioId,                  // Usuario del sistema que crea
+      tecnico_asignado_id: data.tecnico_asignado_id || null, // Técnico opcional
       estado: REMITO_ESTADOS.PREPARADO,
       fecha_preparacion: new Date(),
       token_confirmacion: generateConfirmationToken(),
@@ -180,7 +182,7 @@ async createRemito(data, solicitanteId, usuarioId) {
         { where: { id: it.inventario_id }, transaction }
       );
 
-      // historial (actor del sistema = usuarioId, no el solicitante)
+      // historial (actor del sistema = usuarioId)
       await HistorialInventario.create({
         inventario_id: it.inventario_id,
         remito_id: nuevoRemito.id,
@@ -188,7 +190,7 @@ async createRemito(data, solicitanteId, usuarioId) {
         sede_destino_id: data.sede_destino_id,
         fecha_movimiento: new Date(),
         tipo_movimiento: TIPO_MOVIMIENTO.TRANSFERENCIA,
-        usuario_id: usuarioId || null, // <- Usuario (puede venir null si aún no integraste auth)
+        usuario_id: usuarioId,
         observaciones: `Remito ${nuevoRemito.numero_remito}`
       }, { transaction });
     }
@@ -197,24 +199,32 @@ async createRemito(data, solicitanteId, usuarioId) {
     return nuevoRemito;
   });
 
-  // 2) Fuera de la transacción: generar PDF y actualizar campo
+  // 2) Fuera de la transacción: generar PDF y notificar si hay técnico
   try {
     const pdfPath = await pdfService.generarRemitoPDF(remito.id);
     await remito.update({ pdf_entrega_path: pdfPath });
     logger.info(`PDF generado para remito ${remito.numero_remito}: ${pdfPath}`);
+    
+    // Si hay técnico asignado, notificar
+    if (remito.tecnico_asignado_id) {
+      const tecnico = await Usuario.findByPk(remito.tecnico_asignado_id);
+      if (tecnico) {
+        await emailService.sendRemitoCreado(remito, tecnico);
+        logger.info(`Notificación enviada al técnico ${tecnico.email}`);
+      }
+    }
   } catch (pdfError) {
-    // Importante: no re-lanzamos para no perder el remito creado.
-    logger.error(`Error generando PDF para remito ${remito.id}:`, pdfError);
+    logger.error(`Error post-creación para remito ${remito.id}:`, pdfError);
   }
 
   // 3) Devolver el remito con includes útiles
   try {
     return await this.getRemitoById(remito.id);
   } catch {
-    // fallback: devolver el objeto base si falla el include
     return remito;
   }
 }
+
 
   
   /**

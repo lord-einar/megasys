@@ -1,28 +1,38 @@
 // ============================================
 // backend/src/controllers/remitoController.js
+// CORREGIDO: Métodos alineados con rutas + bugs
 // ============================================
 const remitoService = require('../services/remitoService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { buildPaginatedResponse } = require('../utils/helpers');
+const path = require('path');
 
 class RemitoController {
   /**
-   * Obtener remitos
+   * Listar remitos
+   * GET /remitos
    */
-  getRemitos = asyncHandler(async (req, res) => {
-    const result = await remitoService.getRemitos(req.pagination, req.query);
+  list = asyncHandler(async (req, res) => {
+    const pagination = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+    };
+    
+    const result = await remitoService.getRemitos(pagination, req.query);
     res.json(buildPaginatedResponse(
       result.data,
       result.page,
-      req.pagination.limit,
+      pagination.limit,
       result.total
     ));
   });
   
   /**
    * Obtener remito por ID
+   * GET /remitos/:id
    */
-  getRemitoById = asyncHandler(async (req, res) => {
+  getById = asyncHandler(async (req, res) => {
     const remito = await remitoService.getRemitoById(req.params.id);
     res.json({
       success: true,
@@ -32,9 +42,26 @@ class RemitoController {
   
   /**
    * Crear nuevo remito
+   * POST /remitos
+   * CORREGIDO: solicitante_id viene del body
    */
-  createRemito = asyncHandler(async (req, res) => {
-    const remito = await remitoService.createRemito(req.body, solicitante_id, req.user.id);
+  create = asyncHandler(async (req, res) => {
+    // Extraer solicitante_id del body
+    const { solicitante_id, ...remitoData } = req.body;
+    
+    if (!solicitante_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El solicitante_id es requerido'
+      });
+    }
+    
+    const remito = await remitoService.createRemito(
+      remitoData, 
+      solicitante_id,  // ← CORREGIDO: ahora viene del body
+      req.user.id      // usuario del sistema que crea
+    );
+    
     res.status(201).json({
       success: true,
       data: remito,
@@ -44,15 +71,18 @@ class RemitoController {
   
   /**
    * Actualizar estado de remito
+   * PATCH /remitos/:id/estado
    */
   updateEstado = asyncHandler(async (req, res) => {
-    const { estado, tecnico_asignado_id } = req.body;
+    const { estado, observaciones, tecnico_asignado_id } = req.body;
+    
     const remito = await remitoService.updateEstadoRemito(
       req.params.id,
       estado,
       req.user.id,
       tecnico_asignado_id
     );
+    
     res.json({
       success: true,
       data: remito,
@@ -61,17 +91,8 @@ class RemitoController {
   });
   
   /**
-   * Confirmar recepción
-   */
-  confirmarRecepcion = asyncHandler(async (req, res) => {
-    const remito = await remitoService.confirmarRecepcion(req.params.token);
-    
-    // Redirigir al frontend con mensaje de éxito
-    res.redirect(`${process.env.FRONTEND_URL}/remitos/confirmado?id=${remito.id}`);
-  });
-  
-  /**
    * Reenviar email de confirmación
+   * POST /remitos/:id/reenviar-confirmacion
    */
   reenviarConfirmacion = asyncHandler(async (req, res) => {
     const result = await remitoService.reenviarConfirmacion(req.params.id);
@@ -82,23 +103,67 @@ class RemitoController {
   });
   
   /**
+   * Confirmar recepción por token
+   * GET /remitos/confirmar?token=xxx
+   * CORREGIDO: Token viene por QUERY, no params
+   */
+  confirmarPorToken = asyncHandler(async (req, res) => {
+    const { token } = req.query;  // ← CORREGIDO: era req.params.token
+    
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token no proporcionado'
+      });
+    }
+    
+    const remito = await remitoService.confirmarRecepcion(token);
+    
+    // Redirigir al frontend con mensaje de éxito
+    res.redirect(`${process.env.FRONTEND_URL}/remitos/confirmado?id=${remito.id}`);
+  });
+  
+  /**
    * Descargar PDF de remito
+   * GET /remitos/:id/pdf/:tipo
+   * CORREGIDO: tipo viene por PARAMS, no query
    */
   descargarPDF = asyncHandler(async (req, res) => {
-    const remito = await remitoService.getRemitoById(req.params.id);
+    const { id, tipo } = req.params;  // ← CORREGIDO: tipo ahora es param
     
-    const pdfPath = req.query.tipo === 'confirmacion' 
+    if (!['entrega', 'confirmacion'].includes(tipo)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tipo de PDF inválido. Use: entrega o confirmacion'
+      });
+    }
+    
+    const remito = await remitoService.getRemitoById(id);
+    
+    const pdfPath = tipo === 'confirmacion' 
       ? remito.pdf_confirmacion_path 
       : remito.pdf_entrega_path;
     
     if (!pdfPath) {
       return res.status(404).json({
         success: false,
-        message: 'PDF no encontrado'
+        message: `PDF de ${tipo} no encontrado`
       });
     }
     
-    res.download(pdfPath);
+    // Verificar que el archivo existe
+    const fs = require('fs');
+    const fullPath = path.resolve(pdfPath);
+    
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Archivo PDF no encontrado en el servidor'
+      });
+    }
+    
+    // Enviar archivo
+    res.download(fullPath, `remito_${remito.numero_remito}_${tipo}.pdf`);
   });
 }
 

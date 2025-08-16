@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/controllers/sedeController.js
+// CORREGIDO: Métodos alineados con las rutas
 // ============================================
 const sedeService = require('../services/sedeService');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -7,23 +8,46 @@ const { buildPaginatedResponse } = require('../utils/helpers');
 
 class SedeController {
   /**
-   * Obtener todas las sedes
+   * Listar todas las sedes
+   * GET /sedes
    */
-  getAllSedes = asyncHandler(async (req, res) => {
-    const result = await sedeService.getAllSedes(req.pagination, req.query);
+  list = asyncHandler(async (req, res) => {
+    const pagination = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+    };
+    
+    // Filtrar por empresa_id del contexto
+    const filters = {
+      ...req.query,
+      empresa_id: req.empresaId
+    };
+    
+    const result = await sedeService.getAllSedes(pagination, filters);
     res.json(buildPaginatedResponse(
       result.data,
       result.page,
-      req.pagination.limit,
+      pagination.limit,
       result.total
     ));
   });
   
   /**
    * Obtener sede por ID
+   * GET /sedes/:id
    */
-  getSedeById = asyncHandler(async (req, res) => {
+  getById = asyncHandler(async (req, res) => {
     const sede = await sedeService.getSedeById(req.params.id);
+    
+    // Verificar que la sede pertenece a la empresa del contexto
+    if (sede.empresa_id !== req.empresaId && !req.user.es_super_admin) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tiene acceso a esta sede'
+      });
+    }
+    
     res.json({
       success: true,
       data: sede
@@ -32,9 +56,16 @@ class SedeController {
   
   /**
    * Crear nueva sede
+   * POST /sedes
    */
-  createSede = asyncHandler(async (req, res) => {
-    const sede = await sedeService.createSede(req.body);
+  create = asyncHandler(async (req, res) => {
+    // Agregar empresa_id del contexto
+    const sedeData = {
+      ...req.body,
+      empresa_id: req.empresaId
+    };
+    
+    const sede = await sedeService.createSede(sedeData);
     res.status(201).json({
       success: true,
       data: sede,
@@ -44,8 +75,19 @@ class SedeController {
   
   /**
    * Actualizar sede
+   * PUT /sedes/:id
    */
-  updateSede = asyncHandler(async (req, res) => {
+  update = asyncHandler(async (req, res) => {
+    // Verificar que la sede pertenece a la empresa
+    const sedeActual = await sedeService.getSedeById(req.params.id);
+    
+    if (sedeActual.empresa_id !== req.empresaId && !req.user.es_super_admin) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tiene acceso a esta sede'
+      });
+    }
+    
     const sede = await sedeService.updateSede(req.params.id, req.body);
     res.json({
       success: true,
@@ -56,8 +98,19 @@ class SedeController {
   
   /**
    * Eliminar sede
+   * DELETE /sedes/:id
    */
-  deleteSede = asyncHandler(async (req, res) => {
+  remove = asyncHandler(async (req, res) => {
+    // Verificar que la sede pertenece a la empresa
+    const sedeActual = await sedeService.getSedeById(req.params.id);
+    
+    if (sedeActual.empresa_id !== req.empresaId && !req.user.es_super_admin) {
+      return res.status(403).json({
+        success: false,
+        message: 'No tiene acceso a esta sede'
+      });
+    }
+    
     const result = await sedeService.deleteSede(req.params.id);
     res.json({
       success: true,
@@ -67,14 +120,18 @@ class SedeController {
   
   /**
    * Asignar personal a sede
+   * POST /sedes/:id/personal
    */
   asignarPersonal = asyncHandler(async (req, res) => {
-    const { personalId, rolId } = req.body;
+    const { personal_id, rol_id, fecha_asignacion } = req.body;
+    
     const asignacion = await sedeService.asignarPersonal(
       req.params.id,
-      personalId,
-      rolId
+      personal_id,
+      rol_id,
+      fecha_asignacion
     );
+    
     res.json({
       success: true,
       data: asignacion,
@@ -83,13 +140,18 @@ class SedeController {
   });
   
   /**
-   * Obtener estadísticas de sede
+   * Quitar personal de sede
+   * DELETE /sedes/:id/personal/:personalId
    */
-  getStats = asyncHandler(async (req, res) => {
-    const stats = await sedeService.getSedeStats(req.params.id);
+  quitarPersonal = asyncHandler(async (req, res) => {
+    const result = await sedeService.quitarPersonal(
+      req.params.id,
+      req.params.personalId
+    );
+    
     res.json({
       success: true,
-      data: stats
+      message: 'Personal removido de la sede'
     });
   });
 }

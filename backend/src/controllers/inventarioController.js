@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/controllers/inventarioController.js
+// CORREGIDO: Métodos alineados con las rutas
 // ============================================
 const inventarioService = require('../services/inventarioService');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -7,10 +8,17 @@ const { buildPaginatedResponse } = require('../utils/helpers');
 
 class InventarioController {
   /**
-   * Obtener inventario
+   * Listar inventario con paginación
+   * GET /inventario
    */
-  getInventario = asyncHandler(async (req, res) => {
-    const result = await inventarioService.getInventario(req.pagination, req.query);
+  list = asyncHandler(async (req, res) => {
+    const pagination = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+    };
+    
+    const result = await inventarioService.getInventario(pagination, req.query);
     res.json(buildPaginatedResponse(
       result.data,
       result.page,
@@ -21,8 +29,9 @@ class InventarioController {
   
   /**
    * Obtener item por ID
+   * GET /inventario/:id
    */
-  getItemById = asyncHandler(async (req, res) => {
+  getById = asyncHandler(async (req, res) => {
     const item = await inventarioService.getItemById(req.params.id);
     res.json({
       success: true,
@@ -32,9 +41,16 @@ class InventarioController {
   
   /**
    * Crear nuevo item
+   * POST /inventario
    */
-  createItem = asyncHandler(async (req, res) => {
-    const item = await inventarioService.createItem(req.body, req.user.id);
+  create = asyncHandler(async (req, res) => {
+    // Agregar empresa_id al body
+    const data = {
+      ...req.body,
+      empresa_id: req.empresaId
+    };
+    
+    const item = await inventarioService.createItem(data, req.user.id);
     res.status(201).json({
       success: true,
       data: item,
@@ -44,8 +60,9 @@ class InventarioController {
   
   /**
    * Actualizar item
+   * PUT /inventario/:id
    */
-  updateItem = asyncHandler(async (req, res) => {
+  update = asyncHandler(async (req, res) => {
     const item = await inventarioService.updateItem(
       req.params.id,
       req.body,
@@ -59,9 +76,22 @@ class InventarioController {
   });
   
   /**
-   * Marcar como préstamo
+   * Eliminar item
+   * DELETE /inventario/:id
    */
-  marcarPrestamo = asyncHandler(async (req, res) => {
+  remove = asyncHandler(async (req, res) => {
+    await inventarioService.deleteItem(req.params.id, req.user.id);
+    res.json({
+      success: true,
+      message: 'Item eliminado correctamente'
+    });
+  });
+  
+  /**
+   * Marcar como préstamo
+   * POST /inventario/:id/prestamo
+   */
+  prestar = asyncHandler(async (req, res) => {
     const item = await inventarioService.marcarPrestamo(
       req.params.id,
       req.body,
@@ -76,8 +106,9 @@ class InventarioController {
   
   /**
    * Devolver préstamo
+   * POST /inventario/:id/devolucion
    */
-  devolverPrestamo = asyncHandler(async (req, res) => {
+  devolver = asyncHandler(async (req, res) => {
     const item = await inventarioService.devolverPrestamo(
       req.params.id,
       req.body.observaciones,
@@ -91,27 +122,25 @@ class InventarioController {
   });
   
   /**
-   * Solicitar extensión
+   * Obtener items próximos a vencer
+   * GET /inventario/prestamos/proximos
    */
-  solicitarExtension = asyncHandler(async (req, res) => {
-    const extension = await inventarioService.solicitarExtension(
-      req.params.id,
-      req.body,
-      req.user.id
-    );
+  proximosVencer = asyncHandler(async (req, res) => {
+    const dias = req.query.dias || 7;
+    const items = await inventarioService.getItemsProximosVencer(dias);
     res.json({
       success: true,
-      data: extension,
-      message: 'Extensión solicitada correctamente'
+      data: items,
+      total: items.length
     });
   });
   
   /**
-   * Obtener items próximos a vencer
+   * Obtener items vencidos
+   * GET /inventario/prestamos/vencidos
    */
-  getProximosVencer = asyncHandler(async (req, res) => {
-    const dias = req.query.dias || 7;
-    const items = await inventarioService.getItemsProximosVencer(dias);
+  vencidos = asyncHandler(async (req, res) => {
+    const items = await inventarioService.getItemsVencidos();
     res.json({
       success: true,
       data: items,

@@ -229,6 +229,40 @@ class SedeService {
       throw error;
     }
   }
+
+  /**
+ * Quitar personal de una sede
+ */
+async quitarPersonal(sedeId, personalId) {
+  return withTransaction(sequelize, async (transaction) => {
+    // Verificar que existe la asignación activa
+    const asignacion = await PersonalSede.findOne({
+      where: {
+        sede_id: sedeId,
+        personal_id: personalId,
+        activo: true
+      },
+      transaction
+    });
+    
+    if (!asignacion) {
+      throw new AppError('Personal no está asignado a esta sede', 404);
+    }
+    
+    // Desactivar la asignación
+    await asignacion.update({
+      activo: false,
+      fecha_fin: new Date()
+    }, { transaction });
+    
+    logger.info(`Personal ${personalId} removido de sede ${sedeId}`);
+    
+    return {
+      message: 'Personal removido correctamente',
+      asignacion
+    };
+  });
+}
 }
 
 module.exports = new SedeService();

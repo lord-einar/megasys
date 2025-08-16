@@ -1,10 +1,13 @@
 // ============================================
-// backend/src/services/index.js
+// backend/src/services/index.js (ACTUALIZADO)
 // ============================================
 module.exports = {
   authService: require('./authService'),
   emailService: require('./emailService'),
+  pdfService: require('./pdfService'),
   sedeService: require('./sedeService'),
+  personalService: require('./personalService'),
   inventarioService: require('./inventarioService'),
-  remitoService: require('./remitoService')
+  remitoService: require('./remitoService'),
+  dashboardService: require('./dashboardService')
 };
