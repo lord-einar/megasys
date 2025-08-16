@@ -8,7 +8,8 @@ const {
   HistorialInventario,
   Sede,
   Personal,
-  sequelize 
+  sequelize, 
+  Usuario
 } = require('../models');
 const { Op } = require('sequelize');
 const { AppError } = require('../middleware/errorHandler');
@@ -55,7 +56,7 @@ class RemitoService {
           { model: Sede, as: 'sede_origen', attributes: ['id', 'nombre_sede'] },
           { model: Sede, as: 'sede_destino', attributes: ['id', 'nombre_sede'] },
           { model: Personal, as: 'solicitante', attributes: ['id', 'nombre', 'apellido'] },
-          { model: Personal, as: 'tecnico', attributes: ['id', 'nombre', 'apellido'] }
+          { model: Usuario, as: 'tecnico', attributes: ['id', 'nombre', 'apellido'] }
         ],
         order: [['fecha', 'DESC']]
       });
@@ -82,7 +83,7 @@ class RemitoService {
           { model: Sede, as: 'sede_origen' },
           { model: Sede, as: 'sede_destino' },
           { model: Personal, as: 'solicitante' },
-          { model: Personal, as: 'tecnico' },
+          { model: Usuario, as: 'tecnico' },
           {
             model: Inventario,
             as: 'items',
@@ -106,91 +107,115 @@ class RemitoService {
   /**
    * Crear nuevo remito con transacción
    */
-  async createRemito(data, solicitanteId) {
-    return withTransaction(sequelize, async (transaction) => {
-      // Validar que origen y destino sean diferentes
-      if (data.sede_origen_id === data.sede_destino_id) {
-        throw new AppError('La sede origen y destino no pueden ser iguales', 400);
-      }
-      
-      // Verificar disponibilidad de items
-      const itemIds = data.items.map(item => item.inventario_id);
-      const inventarios = await Inventario.findAll({
-        where: { 
-          id: itemIds,
-          sede_actual_id: data.sede_origen_id,
-          prestamo: false,
-          estado: INVENTARIO_ESTADOS.DISPONIBLE
-        },
-        transaction
-      });
-      
-      if (inventarios.length !== itemIds.length) {
-        throw new AppError('Algunos items no están disponibles en la sede origen', 400);
-      }
-      
-      // Crear remito
-      const remito = await Remito.create({
-        numero_remito: generateRemitoNumber(),
-        fecha: new Date(),
+  /**
+ * Crear nuevo remito con transacción.
+ * @param {Object} data - { sede_origen_id, sede_destino_id, observaciones, items: [{ inventario_id, cantidad, observaciones }] }
+ * @param {String} solicitanteId - ID de Personal (solicitante)
+ * @param {String} usuarioId - ID de Usuario (actor del sistema que ejecuta la acción)
+ */
+async createRemito(data, solicitanteId, usuarioId) {
+  // Validaciones rápidas de entrada
+  if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+    throw new AppError('Debe enviar al menos un ítem de inventario', 400);
+  }
+  if (!data.sede_origen_id || !data.sede_destino_id) {
+    throw new AppError('Debe indicar sede de origen y destino', 400);
+  }
+  if (data.sede_origen_id === data.sede_destino_id) {
+    throw new AppError('La sede origen y destino no pueden ser iguales', 400);
+  }
+  if (!solicitanteId) {
+    throw new AppError('Falta el solicitante (Personal)', 400);
+  }
+
+  // 1) Crear todo dentro de la transacción
+  const remito = await withTransaction(sequelize, async (transaction) => {
+    // Normalizar y validar ítems
+    const itemIds = data.items.map(i => i.inventario_id);
+    const inventarios = await Inventario.findAll({
+      where: {
+        id: itemIds,
+        sede_actual_id: data.sede_origen_id,
+        prestamo: false,
+        estado: INVENTARIO_ESTADOS.DISPONIBLE
+      },
+      transaction
+    });
+
+    if (inventarios.length !== itemIds.length) {
+      logger.warn(
+        `Intento de crear remito con items no disponibles en sede ${data.sede_origen_id}. Esperados=${itemIds.length}, hallados=${inventarios.length}`
+      );
+      throw new AppError('Algunos items no están disponibles en la sede origen', 400);
+    }
+
+    // Crear remito
+    const nuevoRemito = await Remito.create({
+      numero_remito: generateRemitoNumber(),
+      fecha: new Date(),
+      sede_origen_id: data.sede_origen_id,
+      sede_destino_id: data.sede_destino_id,
+      solicitante_id: solicitanteId,             // <- Personal
+      estado: REMITO_ESTADOS.PREPARADO,
+      fecha_preparacion: new Date(),
+      token_confirmacion: generateConfirmationToken(),
+      observaciones: data.observaciones || null
+    }, { transaction });
+
+    // Crear relaciones remito-inventario, pasar a EN_TRANSITO y generar historial
+    for (const it of data.items) {
+      const cantidad = it.cantidad && it.cantidad > 0 ? it.cantidad : 1;
+
+      // vínculo en tabla pivote
+      await RemitoInventario.create({
+        remito_id: nuevoRemito.id,
+        inventario_id: it.inventario_id,
+        cantidad,
+        observaciones: it.observaciones || null
+      }, { transaction });
+
+      // estado del inventario a EN_TRANSITO
+      await Inventario.update(
+        { estado: INVENTARIO_ESTADOS.EN_TRANSITO },
+        { where: { id: it.inventario_id }, transaction }
+      );
+
+      // historial (actor del sistema = usuarioId, no el solicitante)
+      await HistorialInventario.create({
+        inventario_id: it.inventario_id,
+        remito_id: nuevoRemito.id,
         sede_origen_id: data.sede_origen_id,
         sede_destino_id: data.sede_destino_id,
-        solicitante_id: solicitanteId,
-        estado: REMITO_ESTADOS.PREPARADO,
-        fecha_preparacion: new Date(),
-        token_confirmacion: generateConfirmationToken(),
-        observaciones: data.observaciones
+        fecha_movimiento: new Date(),
+        tipo_movimiento: TIPO_MOVIMIENTO.TRANSFERENCIA,
+        usuario_id: usuarioId || null, // <- Usuario (puede venir null si aún no integraste auth)
+        observaciones: `Remito ${nuevoRemito.numero_remito}`
       }, { transaction });
-      
-      // Crear relaciones remito-inventario y actualizar items
-      for (const item of data.items) {
-        // Crear relación
-        await RemitoInventario.create({
-          remito_id: remito.id,
-          inventario_id: item.inventario_id,
-          cantidad: item.cantidad || 1,
-          observaciones: item.observaciones
-        }, { transaction });
-        
-        // Actualizar estado del inventario
-        await Inventario.update(
-          { estado: INVENTARIO_ESTADOS.EN_TRANSITO },
-          { 
-            where: { id: item.inventario_id },
-            transaction
-          }
-        );
-        
-        // Crear registro en historial
-        await HistorialInventario.create({
-          inventario_id: item.inventario_id,
-          remito_id: remito.id,
-          sede_origen_id: data.sede_origen_id,
-          sede_destino_id: data.sede_destino_id,
-          fecha_movimiento: new Date(),
-          tipo_movimiento: TIPO_MOVIMIENTO.TRANSFERENCIA,
-          usuario_id: solicitanteId,
-          observaciones: `Remito ${remito.numero_remito}`
-        }, { transaction });
-      }
+    }
 
-            try {
-        const pdfPath = await pdfService.generarRemitoPDF(remito.id);
-        await remito.update({ 
-          pdf_entrega_path: pdfPath 
-        }, { transaction });
-        
-        logger.info(`PDF generado para remito ${remito.numero_remito}: ${pdfPath}`);
-      } catch (pdfError) {
-        logger.error(`Error generando PDF para remito ${remito.id}:`, pdfError);
-        // Decidir si es crítico o no
-        throw pdfError; // Si querés rollback en caso de error de PDF
-      }
-      
-      logger.info(`Remito creado: ${remito.numero_remito}`);
-      return remito;
-    });
+    logger.info(`Remito creado (PREPARADO): ${nuevoRemito.numero_remito}`);
+    return nuevoRemito;
+  });
+
+  // 2) Fuera de la transacción: generar PDF y actualizar campo
+  try {
+    const pdfPath = await pdfService.generarRemitoPDF(remito.id);
+    await remito.update({ pdf_entrega_path: pdfPath });
+    logger.info(`PDF generado para remito ${remito.numero_remito}: ${pdfPath}`);
+  } catch (pdfError) {
+    // Importante: no re-lanzamos para no perder el remito creado.
+    logger.error(`Error generando PDF para remito ${remito.id}:`, pdfError);
   }
+
+  // 3) Devolver el remito con includes útiles
+  try {
+    return await this.getRemitoById(remito.id);
+  } catch {
+    // fallback: devolver el objeto base si falla el include
+    return remito;
+  }
+}
+
   
   /**
    * Actualizar estado del remito
@@ -221,7 +246,7 @@ class RemitoService {
           
           // Notificar al técnico
           if (tecnicoId) {
-            const tecnico = await Personal.findByPk(tecnicoId);
+            const tecnico = await Usuario.findByPk(tecnicoId);
             await emailService.sendRemitoCreado(remito, tecnico);
           }
           break;

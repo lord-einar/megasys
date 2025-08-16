@@ -34,7 +34,7 @@ class RemitoController {
    * Crear nuevo remito
    */
   createRemito = asyncHandler(async (req, res) => {
-    const remito = await remitoService.createRemito(req.body, req.user.id);
+    const remito = await remitoService.createRemito(req.body, solicitante_id, req.user.id);
     res.status(201).json({
       success: true,
       data: remito,

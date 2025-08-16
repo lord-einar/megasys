@@ -184,25 +184,16 @@ Sede.hasMany(Remito, {
   as: 'remitos_recibidos'
 });
 
-// Un remito es creado por un Personal
-Remito.belongsTo(Personal, { foreignKey: 'solicitante_id', as: 'solicitante' }); // mantiene lo que pide negocio
+// Remito - solicitante (Personal)
+Remito.belongsTo(Personal, { foreignKey: 'solicitante_id', as: 'solicitante' });
+Personal.hasMany(Remito, { foreignKey: 'solicitante_id', as: 'remitos_solicitados' });
+
+// Remito - técnico asignado (Usuario)
+Remito.belongsTo(Usuario, { foreignKey: 'tecnico_asignado_id', as: 'tecnico' });
+Usuario.hasMany(Remito, { foreignKey: 'tecnico_asignado_id', as: 'remitos_asignados' });
 
 
-// Un remito puede tener un técnico asignado (que es usuario)
-Remito.belongsTo(Usuario, {
-  foreignKey: 'tecnico_asignado_id',
-  as: 'tecnico'
-});
 
-Usuario.hasMany(Remito, {
-  foreignKey: 'solicitante_id',
-  as: 'remitos_solicitados'
-});
-
-Personal.hasMany(Remito, {
-  foreignKey: 'tecnico_asignado_id',
-  as: 'remitos_asignados'
-});
 
 // Un remito puede tener múltiples items de inventario
 Remito.belongsToMany(Inventario, {

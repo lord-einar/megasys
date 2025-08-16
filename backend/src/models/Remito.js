@@ -45,7 +45,7 @@ const Remito = sequelize.define('remito', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'personal',
+      model: 'usuarios',
       key: 'id'
     }
   },
