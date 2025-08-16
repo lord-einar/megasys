@@ -1,11 +1,12 @@
 // ============================================
 // backend/src/controllers/remitoController.js
-// CORREGIDO: Métodos alineados con rutas + bugs
+// CORREGIDO: Todos los bugs identificados
 // ============================================
 const remitoService = require('../services/remitoService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { buildPaginatedResponse } = require('../utils/helpers');
-const path = require('path');
+const path = require('path'); // ← AGREGADO: import faltante
+const fs = require('fs');
 
 class RemitoController {
   /**
@@ -43,10 +44,8 @@ class RemitoController {
   /**
    * Crear nuevo remito
    * POST /remitos
-   * CORREGIDO: solicitante_id viene del body
    */
   create = asyncHandler(async (req, res) => {
-    // Extraer solicitante_id del body
     const { solicitante_id, ...remitoData } = req.body;
     
     if (!solicitante_id) {
@@ -58,8 +57,8 @@ class RemitoController {
     
     const remito = await remitoService.createRemito(
       remitoData, 
-      solicitante_id,  // ← CORREGIDO: ahora viene del body
-      req.user.id      // usuario del sistema que crea
+      solicitante_id,
+      req.user.id
     );
     
     res.status(201).json({
@@ -105,10 +104,9 @@ class RemitoController {
   /**
    * Confirmar recepción por token
    * GET /remitos/confirmar?token=xxx
-   * CORREGIDO: Token viene por QUERY, no params
    */
   confirmarPorToken = asyncHandler(async (req, res) => {
-    const { token } = req.query;  // ← CORREGIDO: era req.params.token
+    const { token } = req.query;
     
     if (!token) {
       return res.status(400).json({
@@ -126,10 +124,10 @@ class RemitoController {
   /**
    * Descargar PDF de remito
    * GET /remitos/:id/pdf/:tipo
-   * CORREGIDO: tipo viene por PARAMS, no query
+   * CORREGIDO: Usar req.params.tipo y agregar import path
    */
   descargarPDF = asyncHandler(async (req, res) => {
-    const { id, tipo } = req.params;  // ← CORREGIDO: tipo ahora es param
+    const { id, tipo } = req.params; // ← CORREGIDO: params, no query
     
     if (!['entrega', 'confirmacion'].includes(tipo)) {
       return res.status(400).json({
@@ -152,8 +150,7 @@ class RemitoController {
     }
     
     // Verificar que el archivo existe
-    const fs = require('fs');
-    const fullPath = path.resolve(pdfPath);
+    const fullPath = path.resolve(pdfPath); // ← path ahora está importado
     
     if (!fs.existsSync(fullPath)) {
       return res.status(404).json({

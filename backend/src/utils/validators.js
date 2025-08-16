@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/utils/validators.js
+// CORREGIDO: UUID en lugar de INT para todas las entidades
 // ============================================
 const { body, param, query } = require('express-validator');
 
@@ -8,30 +9,29 @@ const { body, param, query } = require('express-validator');
  */
 const sedeValidators = {
   create: [
-    body('nombre_empresa').notEmpty().trim().isLength({ max: 100 }),
     body('nombre_sede').notEmpty().trim().isLength({ max: 100 }),
     body('direccion').notEmpty().trim().isLength({ max: 255 }),
     body('localidad').notEmpty().trim().isLength({ max: 100 }),
     body('provincia').notEmpty().trim().isLength({ max: 100 }),
     body('pais').optional().trim().isLength({ max: 100 }),
     body('telefono').optional().trim().matches(/^[\d\s\-\+\(\)]+$/),
-    body('ip_sede').optional().isIP()
+    body('ip_sede').optional().isIP(),
+    body('codigo_sede').optional().trim().isLength({ max: 20 })
   ],
-  delete: [
-    param('id').isInt()
-    ],
   update: [
-    param('id').isInt(),
-    body('nombre_empresa').optional().trim().isLength({ max: 100 }),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('nombre_sede').optional().trim().isLength({ max: 100 }),
     body('direccion').optional().trim().isLength({ max: 255 }),
     body('localidad').optional().trim().isLength({ max: 100 }),
     body('provincia').optional().trim().isLength({ max: 100 }),
     body('telefono').optional().trim().matches(/^[\d\s\-\+\(\)]+$/),
-    body('ip_sede').optional().isIP()
+    body('ip_sede').optional().isIP(),
+    body('codigo_sede').optional().trim().isLength({ max: 20 })
+  ],
+  delete: [
+    param('id').isUUID(4) // ← CORREGIDO: UUID v4
   ]
 };
-
 
 /**
  * Validadores para Personal
@@ -40,11 +40,11 @@ const personalValidators = {
   create: [
     body('nombre').notEmpty().trim().isLength({ max: 100 }),
     body('apellido').notEmpty().trim().isLength({ max: 100 }),
-    body('email').notEmpty().isEmail().normalizeEmail(),
+    body('email').optional().isEmail().normalizeEmail(),
     body('telefono').optional().trim().matches(/^[\d\s\-\+\(\)]+$/)
   ],
   update: [
-    param('id').isInt(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('nombre').optional().trim().isLength({ max: 100 }),
     body('apellido').optional().trim().isLength({ max: 100 }),
     body('email').optional().isEmail().normalizeEmail(),
@@ -53,39 +53,38 @@ const personalValidators = {
   ]
 };
 
-
 /**
  * Validadores para Inventario
  */
 const inventarioValidators = {
   create: [
-    body('tipo_articulo_id').notEmpty().isInt(),
+    body('tipo_articulo_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('marca').notEmpty().trim().isLength({ max: 100 }),
     body('modelo').notEmpty().trim().isLength({ max: 100 }),
     body('numero_serie').optional().trim().isLength({ max: 150 }),
-    body('service_tag').notEmpty().trim().isLength({ max: 150 }),
-    body('sede_actual_id').optional().isInt(),
+    body('service_tag').optional().trim().isLength({ max: 150 }),
+    body('sede_actual_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     body('observaciones').optional().trim()
   ],
   update: [
-    param('id').isInt(),
-    body('tipo_articulo_id').optional().isInt(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('tipo_articulo_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     body('marca').optional().trim().isLength({ max: 100 }),
     body('modelo').optional().trim().isLength({ max: 100 }),
     body('numero_serie').optional().trim().isLength({ max: 150 }),
     body('service_tag').optional().trim().isLength({ max: 150 }),
-    body('sede_actual_id').optional().isInt(),
+    body('sede_actual_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     body('activo').optional().isBoolean(),
     body('observaciones').optional().trim()
   ],
   prestamo: [
-    param('id').isInt(),
-    body('usuario_prestamo_id').notEmpty().isInt(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('usuario_prestamo_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('fecha_devolucion').notEmpty().isISO8601(),
     body('observaciones_prestamo').optional().trim()
   ],
   devolucion: [
-    param('id').isInt(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('observaciones').optional().trim()
   ]
 };
@@ -95,20 +94,22 @@ const inventarioValidators = {
  */
 const remitoValidators = {
   create: [
-    body('sede_origen_id').notEmpty().isInt(),
-    body('sede_destino_id').notEmpty().isInt(),
+    body('sede_origen_id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('sede_destino_id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('solicitante_id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('tecnico_asignado_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     body('items').isArray().notEmpty(),
-    body('items.*.inventario_id').notEmpty().isInt(),
+    body('items.*.inventario_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('items.*.cantidad').optional().isInt({ min: 1 }),
     body('observaciones').optional().trim()
   ],
   updateEstado: [
-    param('id').isInt(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('estado').notEmpty().isIn(['preparado', 'en_transito', 'entregado', 'confirmado']),
-    body('tecnico_asignado_id').optional().isInt()
+    body('tecnico_asignado_id').optional().isUUID(4) // ← CORREGIDO: UUID v4
   ],
   confirmar: [
-    param('token').notEmpty().isString()
+    query('token').notEmpty().isString() // Token viene por query
   ]
 };
 
@@ -129,7 +130,7 @@ const queryValidators = {
   ],
   filters: [
     query('estado').optional().trim(),
-    query('sede_id').optional().isInt(),
+    query('sede_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     query('activo').optional().isBoolean()
   ]
 };

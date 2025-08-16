@@ -1,3 +1,7 @@
+// ============================================
+// backend/src/models/Remito.js
+// ACTUALIZADO: Campo de expiración de token agregado
+// ============================================
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -91,6 +95,11 @@ const Remito = sequelize.define('remito', {
     unique: true,
     allowNull: true
   },
+  fecha_expiracion_token: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'Fecha de expiración del token de confirmación (24 horas)'
+  },
   observaciones: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -112,6 +121,9 @@ const Remito = sequelize.define('remito', {
     },
     {
       fields: ['sede_origen_id', 'sede_destino_id']
+    },
+    {
+      fields: ['fecha_expiracion_token'] // ← NUEVO ÍNDICE
     }
   ]
 });

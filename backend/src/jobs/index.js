@@ -1,13 +1,16 @@
 // ============================================
 // backend/src/jobs/index.js
+// ACTUALIZADO: Incluir job de limpieza de tokens
 // ============================================
 const prestamoReminder = require('./prestamoReminder');
+const tokenCleanup = require('./tokenCleanup'); // ← NUEVO
 const { logger } = require('../utils/logger');
 
 class JobManager {
   constructor() {
     this.jobs = [
-      prestamoReminder
+      prestamoReminder,
+      tokenCleanup // ← AGREGADO
     ];
   }
   

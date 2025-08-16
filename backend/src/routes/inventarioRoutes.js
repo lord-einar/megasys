@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/routes/inventarioRoutes.js
+// CORREGIDO: Validators usando UUID en lugar de isInt
 // ============================================
 const express = require('express');
 const { body, param, query, validationResult } = require('express-validator');
@@ -14,7 +15,6 @@ const controller = require('../controllers/inventarioController');
 
 const router = express.Router();
 
-// Helper de validación
 function validate(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -28,9 +28,7 @@ const validatePagination = [
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
 ];
 
-// =========================
 // Listado + filtros
-// =========================
 router.get(
   '/',
   authenticate,
@@ -41,31 +39,26 @@ router.get(
     query('service_tag').optional().isString().trim(),
     query('estado').optional().isIn(['disponible', 'en_uso', 'prestado', 'en_transito', 'en_reparacion', 'baja']),
     query('prestamo').optional().isBoolean().toBoolean(),
-    query('sede_actual_id').optional().isUUID(),
+    query('sede_actual_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     ...validatePagination
   ],
   validate,
-  // el controller debería tomar req.empresaId para filtrar por empresa
   (req, res) => controller.list(req, res)
 );
 
-// =========================
 // Detalle
-// =========================
 router.get(
   '/:id',
   authenticate,
   requireEmpresa(),
   authorizeEmpresa(),
   authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
-  [param('id').isUUID()],
+  [param('id').isUUID(4)], // ← CORREGIDO: UUID v4
   validate,
   (req, res) => controller.getById(req, res)
 );
 
-// =========================
 // Crear
-// =========================
 router.post(
   '/',
   authenticate,
@@ -73,11 +66,11 @@ router.post(
   authorizeEmpresa(),
   authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   [
-    body('tipo_articulo_id').isUUID(),
+    body('tipo_articulo_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('marca').isString().trim().notEmpty(),
     body('modelo').isString().trim().notEmpty(),
-    body('service_tag').isString().trim().notEmpty(),
-    body('sede_actual_id').isUUID(),
+    body('service_tag').optional().isString().trim(),
+    body('sede_actual_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('numero_serie').optional().isString().trim(),
     body('activo').optional().isBoolean().toBoolean(),
   ],
@@ -85,9 +78,7 @@ router.post(
   (req, res) => controller.create(req, res)
 );
 
-// =========================
 // Actualizar
-// =========================
 router.put(
   '/:id',
   authenticate,
@@ -95,12 +86,12 @@ router.put(
   authorizeEmpresa(),
   authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   [
-    param('id').isUUID(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('marca').optional().isString().trim(),
     body('modelo').optional().isString().trim(),
     body('numero_serie').optional().isString().trim(),
     body('service_tag').optional().isString().trim(),
-    body('sede_actual_id').optional().isUUID(),
+    body('sede_actual_id').optional().isUUID(4), // ← CORREGIDO: UUID v4
     body('estado').optional().isIn(['disponible', 'en_uso', 'prestado', 'en_transito', 'en_reparacion', 'baja']),
     body('activo').optional().isBoolean().toBoolean(),
     body('observaciones').optional().isString(),
@@ -109,23 +100,19 @@ router.put(
   (req, res) => controller.update(req, res)
 );
 
-// =========================
-// Eliminar (solo Infra)
-// =========================
+// Eliminar
 router.delete(
   '/:id',
   authenticate,
   requireEmpresa(),
   authorizeEmpresa(),
   authorize(AD_GROUPS.INFRAESTRUCTURA),
-  [param('id').isUUID()],
+  [param('id').isUUID(4)], // ← CORREGIDO: UUID v4
   validate,
   (req, res) => controller.remove(req, res)
 );
 
-// =========================
 // Préstamo
-// =========================
 router.post(
   '/:id/prestamo',
   authenticate,
@@ -133,8 +120,8 @@ router.post(
   authorizeEmpresa(),
   authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   [
-    param('id').isUUID(),
-    body('usuario_prestamo_id').isUUID(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
+    body('usuario_prestamo_id').isUUID(4), // ← CORREGIDO: UUID v4
     body('fecha_devolucion').isISO8601().toDate(),
     body('observaciones_prestamo').optional().isString(),
   ],
@@ -142,9 +129,7 @@ router.post(
   (req, res) => controller.prestar(req, res)
 );
 
-// =========================
 // Devolución
-// =========================
 router.post(
   '/:id/devolucion',
   authenticate,
@@ -152,16 +137,14 @@ router.post(
   authorizeEmpresa(),
   authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   [
-    param('id').isUUID(),
+    param('id').isUUID(4), // ← CORREGIDO: UUID v4
     body('observaciones').optional().isString(),
   ],
   validate,
   (req, res) => controller.devolver(req, res)
 );
 
-// =========================
 // Reportes de préstamos
-// =========================
 router.get(
   '/prestamos/proximos',
   authenticate,
