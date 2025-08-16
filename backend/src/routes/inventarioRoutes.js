@@ -1,75 +1,187 @@
 // ============================================
 // backend/src/routes/inventarioRoutes.js
 // ============================================
-const router = require('express').Router();
-const { inventarioController } = require('../controllers');
-const { authenticate, authorize, AD_GROUPS } = require('../middleware/auth');
-const { auditMiddleware } = require('../middleware/audit');
-const { validatePagination } = require('../middleware/validation');
-const { inventarioValidators, queryValidators } = require('../utils/validators');
-const { validateRequest } = require('../middleware/validation');
+const express = require('express');
+const { body, param, query, validationResult } = require('express-validator');
+const {
+  authenticate,
+  authorize,
+  requireEmpresa,
+  authorizeEmpresa,
+  AD_GROUPS
+} = require('../middleware/auth');
+const controller = require('../controllers/inventarioController');
 
-// Aplicar autenticación a todas las rutas
-router.use(authenticate);
+const router = express.Router();
 
-// GET - Listar inventario
+// Helper de validación
+function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ success: false, errors: errors.array() });
+  }
+  next();
+}
+
+const validatePagination = [
+  query('page').optional().isInt({ min: 1 }).toInt(),
+  query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+];
+
+// =========================
+// Listado + filtros
+// =========================
 router.get(
   '/',
-  queryValidators.pagination,
-  validatePagination,
-  inventarioController.getInventario
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    query('service_tag').optional().isString().trim(),
+    query('estado').optional().isIn(['disponible', 'en_uso', 'prestado', 'en_transito', 'en_reparacion', 'baja']),
+    query('prestamo').optional().isBoolean().toBoolean(),
+    query('sede_actual_id').optional().isUUID(),
+    ...validatePagination
+  ],
+  validate,
+  // el controller debería tomar req.empresaId para filtrar por empresa
+  (req, res) => controller.list(req, res)
 );
 
-// GET - Items próximos a vencer
-router.get('/proximos-vencer', inventarioController.getProximosVencer);
+// =========================
+// Detalle
+// =========================
+router.get(
+  '/:id',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [param('id').isUUID()],
+  validate,
+  (req, res) => controller.getById(req, res)
+);
 
-// GET - Obtener item por ID
-router.get('/:id', inventarioController.getItemById);
-
-// POST - Crear item (Infraestructura y Soporte)
+// =========================
+// Crear
+// =========================
 router.post(
   '/',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
-  inventarioValidators.create,
-  validateRequest,
-  auditMiddleware('inventario', 'CREATE'),
-  inventarioController.createItem
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    body('tipo_articulo_id').isUUID(),
+    body('marca').isString().trim().notEmpty(),
+    body('modelo').isString().trim().notEmpty(),
+    body('service_tag').isString().trim().notEmpty(),
+    body('sede_actual_id').isUUID(),
+    body('numero_serie').optional().isString().trim(),
+    body('activo').optional().isBoolean().toBoolean(),
+  ],
+  validate,
+  (req, res) => controller.create(req, res)
 );
 
-// PUT - Actualizar item (Infraestructura y Soporte)
+// =========================
+// Actualizar
+// =========================
 router.put(
   '/:id',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
-  inventarioValidators.update,
-  validateRequest,
-  auditMiddleware('inventario', 'UPDATE'),
-  inventarioController.updateItem
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    body('marca').optional().isString().trim(),
+    body('modelo').optional().isString().trim(),
+    body('numero_serie').optional().isString().trim(),
+    body('service_tag').optional().isString().trim(),
+    body('sede_actual_id').optional().isUUID(),
+    body('estado').optional().isIn(['disponible', 'en_uso', 'prestado', 'en_transito', 'en_reparacion', 'baja']),
+    body('activo').optional().isBoolean().toBoolean(),
+    body('observaciones').optional().isString(),
+  ],
+  validate,
+  (req, res) => controller.update(req, res)
 );
 
-// POST - Marcar como préstamo
+// =========================
+// Eliminar (solo Infra)
+// =========================
+router.delete(
+  '/:id',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  [param('id').isUUID()],
+  validate,
+  (req, res) => controller.remove(req, res)
+);
+
+// =========================
+// Préstamo
+// =========================
 router.post(
   '/:id/prestamo',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
-  inventarioValidators.prestamo,
-  validateRequest,
-  auditMiddleware('inventario', 'UPDATE'),
-  inventarioController.marcarPrestamo
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    body('usuario_prestamo_id').isUUID(),
+    body('fecha_devolucion').isISO8601().toDate(),
+    body('observaciones_prestamo').optional().isString(),
+  ],
+  validate,
+  (req, res) => controller.prestar(req, res)
 );
 
-// POST - Devolver préstamo
+// =========================
+// Devolución
+// =========================
 router.post(
   '/:id/devolucion',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
-  inventarioValidators.devolucion,
-  validateRequest,
-  auditMiddleware('inventario', 'UPDATE'),
-  inventarioController.devolverPrestamo
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    body('observaciones').optional().isString(),
+  ],
+  validate,
+  (req, res) => controller.devolver(req, res)
 );
 
-// POST - Solicitar extensión
-router.post(
-  '/:id/extension',
-  inventarioController.solicitarExtension
+// =========================
+// Reportes de préstamos
+// =========================
+router.get(
+  '/prestamos/proximos',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  validatePagination,
+  validate,
+  (req, res) => controller.proximosVencer(req, res)
+);
+
+router.get(
+  '/prestamos/vencidos',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  validatePagination,
+  validate,
+  (req, res) => controller.vencidos(req, res)
 );
 
 module.exports = router;

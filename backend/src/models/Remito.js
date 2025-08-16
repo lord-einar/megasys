@@ -1,109 +1,68 @@
-// ============================================
 // backend/src/models/Remito.js
-// ============================================
-const { DataTypes } = require('sequelize');
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Remito = sequelize.define('remito', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-    autoIncrement: true
+    primaryKey: true
   },
+  // BIGINT y default desde la secuencia creada en la migración
   numero_remito: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.BIGINT,
     allowNull: false,
-    unique: true
+    unique: true,
+    defaultValue: Sequelize.literal(`nextval('remitos_numero_seq')`)
   },
   fecha: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
   },
+  // FKs: NO poner defaultValue en foreign keys
   sede_origen_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    allowNull: false,
-    references: {
-      model: 'sedes',
-      key: 'id'
-    }
+    allowNull: false
   },
   sede_destino_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    allowNull: false,
-    references: {
-      model: 'sedes',
-      key: 'id'
-    }
+    allowNull: false
   },
-  creado_por_id: {
-  type: DataTypes.INTEGER,
-  allowNull: false,
-  references: { model: 'usuarios', key: 'id' }
-  },
+  // Quien solicita → es “personal” (no usuario)
   solicitante_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    allowNull: false,
-    references: {
-      model: 'personal',
-      key: 'id'
-    }
+    allowNull: false
   },
-  estado: {
-    type: DataTypes.ENUM('preparado', 'en_transito', 'entregado', 'confirmado'),
-    defaultValue: 'preparado',
+  // Quien crea/asigna/toca → es “usuario” del sistema
+  creado_por_id: {
+    type: DataTypes.UUID,
     allowNull: false
   },
   tecnico_asignado_id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    references: { model: 'usuarios', key: 'id' }
+    allowNull: true
   },
-  pdf_entrega_path: {
-    type: DataTypes.STRING(500)
+  estado: {
+    type: DataTypes.ENUM('preparado', 'en_transito', 'entregado', 'confirmado'),
+    allowNull: false,
+    defaultValue: 'preparado'
   },
-  pdf_confirmacion_path: {
-    type: DataTypes.STRING(500)
-  },
-  fecha_preparacion: {
-    type: DataTypes.DATE
-  },
-  fecha_transito: {
-    type: DataTypes.DATE
-  },
-  fecha_entrega: {
-    type: DataTypes.DATE
-  },
-  fecha_confirmacion: {
-    type: DataTypes.DATE
-  },
-  token_confirmacion: {
-    type: DataTypes.STRING(255),
-    unique: true
-  },
-  observaciones: {
-    type: DataTypes.TEXT
-  }
+  pdf_entrega_path: DataTypes.STRING(500),
+  pdf_confirmacion_path: DataTypes.STRING(500),
+  fecha_preparacion: DataTypes.DATE,
+  fecha_transito: DataTypes.DATE,
+  fecha_entrega: DataTypes.DATE,
+  fecha_confirmacion: DataTypes.DATE,
+  token_confirmacion: { type: DataTypes.STRING(255), unique: true },
+  observaciones: DataTypes.TEXT
 }, {
   tableName: 'remitos',
   indexes: [
-    {
-      unique: true,
-      fields: ['numero_remito']
-    },
-    {
-      fields: ['estado']
-    },
-    {
-      fields: ['fecha']
-    },
-    {
-      fields: ['sede_origen_id', 'sede_destino_id']
-    }
+    { unique: true, fields: ['numero_remito'] },
+    { fields: ['estado'] },
+    { fields: ['fecha'] },
+    { fields: ['sede_origen_id', 'sede_destino_id'] }
   ]
 });
 

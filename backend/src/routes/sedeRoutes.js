@@ -1,65 +1,155 @@
 // ============================================
 // backend/src/routes/sedeRoutes.js
 // ============================================
-const router = require('express').Router();
-const { sedeController } = require('../controllers');
-const { authenticate, authorize, AD_GROUPS } = require('../middleware/auth');
-const { auditMiddleware } = require('../middleware/audit');
-const { validatePagination } = require('../middleware/validation');
-const { sedeValidators, queryValidators } = require('../utils/validators');
-const { validateRequest } = require('../middleware/validation');
+const express = require('express');
+const { body, param, query, validationResult } = require('express-validator');
+const {
+  authenticate,
+  authorize,
+  requireEmpresa,
+  authorizeEmpresa,
+  AD_GROUPS
+} = require('../middleware/auth');
+const controller = require('../controllers/sedeController');
 
-// Aplicar autenticación a todas las rutas
-router.use(authenticate);
+const router = express.Router();
 
-// GET - Listar sedes
+function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ success: false, errors: errors.array() });
+  }
+  next();
+}
+
+const validatePagination = [
+  query('page').optional().isInt({ min: 1 }).toInt(),
+  query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+];
+
+// =========================
+// Listado de sedes por empresa
+// =========================
 router.get(
   '/',
-  queryValidators.pagination,
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   validatePagination,
-  sedeController.getAllSedes
+  validate,
+  (req, res) => controller.list(req, res)
 );
 
-// GET - Obtener sede por ID
-router.get('/:id', sedeController.getSedeById);
+// =========================
+// Detalle
+// =========================
+router.get(
+  '/:id',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [param('id').isUUID()],
+  validate,
+  (req, res) => controller.getById(req, res)
+);
 
-// GET - Estadísticas de sede
-router.get('/:id/stats', sedeController.getStats);
-
-// POST - Crear sede (solo Infraestructura)
+// =========================
+// Crear Sede (queda ligada a req.empresaId)
+// =========================
 router.post(
   '/',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
-  sedeValidators.create,
-  validateRequest,
-  auditMiddleware('sede', 'CREATE'),
-  sedeController.createSede
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    body('nombre_sede').isString().trim().notEmpty(),
+    body('direccion').isString().trim().notEmpty(),
+    body('localidad').isString().trim().notEmpty(),
+    body('provincia').isString().trim().notEmpty(),
+    body('pais').optional().isString().trim(),
+    body('telefono').optional().isString().trim(),
+    body('ip_sede').optional().isIP(),
+    body('codigo_sede').optional().isString().trim()
+  ],
+  validate,
+  (req, res) => controller.create(req, res)
 );
 
-// PUT - Actualizar sede (solo Infraestructura)
+// =========================
+// Actualizar Sede
+// =========================
 router.put(
   '/:id',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
-  sedeValidators.update,
-  validateRequest,
-  auditMiddleware('sede', 'UPDATE'),
-  sedeController.updateSede
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    body('nombre_sede').optional().isString().trim(),
+    body('direccion').optional().isString().trim(),
+    body('localidad').optional().isString().trim(),
+    body('provincia').optional().isString().trim(),
+    body('pais').optional().isString().trim(),
+    body('telefono').optional().isString().trim(),
+    body('ip_sede').optional().isIP(),
+    body('codigo_sede').optional().isString().trim()
+  ],
+  validate,
+  (req, res) => controller.update(req, res)
 );
 
-// DELETE - Eliminar sede (solo Infraestructura)
+// =========================
+// Eliminar Sede (solo Infra)
+// =========================
 router.delete(
   '/:id',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
-  auditMiddleware('sede', 'DELETE'),
-  sedeController.deleteSede
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  [param('id').isUUID()],
+  validate,
+  (req, res) => controller.remove(req, res)
 );
 
-// POST - Asignar personal a sede
+// =========================
+// Asignar personal a sede
+// =========================
 router.post(
   '/:id/personal',
-  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
-  auditMiddleware('personal_sede', 'CREATE'),
-  sedeController.asignarPersonal
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    body('personal_id').isUUID(),
+    body('rol_id').isUUID(),
+    body('fecha_asignacion').optional().isISO8601().toDate()
+  ],
+  validate,
+  (req, res) => controller.asignarPersonal(req, res)
+);
+
+// =========================
+// Quitar personal de sede
+// =========================
+router.delete(
+  '/:id/personal/:personalId',
+  authenticate,
+  requireEmpresa(),
+  authorizeEmpresa(),
+  authorize(AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
+  [
+    param('id').isUUID(),
+    param('personalId').isUUID()
+  ],
+  validate,
+  (req, res) => controller.quitarPersonal(req, res)
 );
 
 module.exports = router;
