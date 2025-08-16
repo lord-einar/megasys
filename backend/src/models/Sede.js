@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Sede = sequelize.define('sede', {
@@ -89,7 +89,7 @@ const Sede = sequelize.define('sede', {
       fields: ['empresa_id', 'codigo_sede'],
       where: {
         codigo_sede: {
-          [DataTypes.Op.ne]: null
+          [Sequelize.Op.ne]: null
         }
       }
     }

@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Inventario = sequelize.define('inventario', {
@@ -103,7 +103,7 @@ const Inventario = sequelize.define('inventario', {
       fields: ['service_tag'],
       where: {
         service_tag: {
-          [DataTypes.Op.ne]: null
+          [Sequelize.Op.ne]: null
         }
       }
     },
@@ -112,7 +112,7 @@ const Inventario = sequelize.define('inventario', {
       fields: ['numero_serie'],
       where: {
         numero_serie: {
-          [DataTypes.Op.ne]: null
+          [Sequelize.Op.ne]: null
         }
       }
     },
