@@ -6,12 +6,14 @@ const sequelize = require('../config/database');
 
 const Inventario = sequelize.define('inventario', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
   tipo_articulo_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'tipo_articulos',

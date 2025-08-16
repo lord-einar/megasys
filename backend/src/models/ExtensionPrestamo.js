@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const ExtensionPrestamo = sequelize.define('extension_prestamo', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
@@ -38,13 +39,10 @@ const ExtensionPrestamo = sequelize.define('extension_prestamo', {
       key: 'id'
     }
   },
-  aprobado_por_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'personal',
-      key: 'id'
-    }
-  },
+aprobado_por_id: {
+  type: DataTypes.INTEGER,
+  references: { model: 'usuarios', key: 'id' }
+},
   fecha_solicitud: {
     type: DataTypes.DATE,
     allowNull: false,

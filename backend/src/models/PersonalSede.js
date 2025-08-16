@@ -6,12 +6,14 @@ const sequelize = require('../config/database');
 
 const PersonalSede = sequelize.define('personal_sede', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
   personal_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'personal',
@@ -19,7 +21,8 @@ const PersonalSede = sequelize.define('personal_sede', {
     }
   },
   sede_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'sedes',
@@ -27,7 +30,8 @@ const PersonalSede = sequelize.define('personal_sede', {
     }
   },
   rol_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'roles',

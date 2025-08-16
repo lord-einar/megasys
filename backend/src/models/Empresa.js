@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const Empresa = sequelize.define('empresa', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },

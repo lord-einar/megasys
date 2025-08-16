@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const Servicio = sequelize.define('servicio', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
@@ -15,7 +16,8 @@ const Servicio = sequelize.define('servicio', {
     allowNull: false
   },
   tipo_servicio_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'tipo_servicios',

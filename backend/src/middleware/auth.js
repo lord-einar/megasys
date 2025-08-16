@@ -175,10 +175,11 @@ const requireSuperAdmin = (req, res, next) => {
  * Estos son ejemplos, reemplaza con los IDs reales
  */
 const AD_GROUP_IDS = {
-  INFRAESTRUCTURA: process.env.AD_GROUP_INFRAESTRUCTURA_ID || 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-  SOPORTE: process.env.AD_GROUP_SOPORTE_ID || 'yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy',
-  MESA_AYUDA: process.env.AD_GROUP_MESA_AYUDA_ID || 'zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz'
+  INFRAESTRUCTURA: process.env.AD_GROUP_INFRAESTRUCTURA_ID,
+  SOPORTE:         process.env.AD_GROUP_SOPORTE_ID,
+  MESA_AYUDA:      process.env.AD_GROUP_MESA_AYUDA_ID
 };
+
 
 module.exports = {
   authenticate,

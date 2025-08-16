@@ -33,7 +33,7 @@ router.get('/:id/pdf', remitoController.descargarPDF);
 // POST - Crear remito (Infraestructura y Soporte)
 router.post(
   '/',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   remitoValidators.create,
   validateRequest,
   auditMiddleware('remito', 'CREATE'),
@@ -43,7 +43,7 @@ router.post(
 // PUT - Actualizar estado (Infraestructura y Soporte)
 router.put(
   '/:id/estado',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   remitoValidators.updateEstado,
   validateRequest,
   auditMiddleware('remito', 'UPDATE'),
@@ -53,7 +53,7 @@ router.put(
 // POST - Reenviar confirmación
 router.post(
   '/:id/reenviar-confirmacion',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   remitoController.reenviarConfirmacion
 );
 

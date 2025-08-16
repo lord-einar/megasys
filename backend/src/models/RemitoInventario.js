@@ -6,12 +6,14 @@ const sequelize = require('../config/database');
 
 const RemitoInventario = sequelize.define('remito_inventario', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
   remito_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'remitos',
@@ -19,7 +21,8 @@ const RemitoInventario = sequelize.define('remito_inventario', {
     }
   },
   inventario_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'inventario',

@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const HistorialInventario = sequelize.define('historial_inventario', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
@@ -48,14 +49,11 @@ const HistorialInventario = sequelize.define('historial_inventario', {
     type: DataTypes.ENUM('ingreso', 'egreso', 'transferencia', 'baja', 'prestamo', 'devolucion'),
     allowNull: false
   },
-  usuario_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'personal',
-      key: 'id'
-    }
-  },
+usuario_id: {
+  type: DataTypes.INTEGER,
+  allowNull: false,
+  references: { model: 'usuarios', key: 'id' }
+},
   observaciones: {
     type: DataTypes.TEXT
   }

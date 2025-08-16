@@ -24,15 +24,8 @@ const Auditoria = require('./Auditoria');
 // ============================================
 
 // Una empresa tiene múltiples sedes
-Empresa.hasMany(Sede, {
-  foreignKey: 'empresa_id',
-  as: 'sedes'
-});
-
-Sede.belongsTo(Empresa, {
-  foreignKey: 'empresa_id',
-  as: 'empresa'
-});
+Empresa.hasMany(Sede, { foreignKey: 'empresa_id', as: 'sedes' });
+Sede.belongsTo(Empresa, { foreignKey: 'empresa_id', as: 'empresa' });
 
 // ============================================
 // Relaciones Sede - Personal (a través de PersonalSede)
@@ -176,15 +169,10 @@ Inventario.belongsTo(Remito, {
 // ============================================
 
 // Un remito tiene sede origen y destino
-Remito.belongsTo(Sede, {
-  foreignKey: 'sede_origen_id',
-  as: 'sede_origen'
-});
+Remito.belongsTo(Sede, { foreignKey: 'sede_origen_id', as: 'sede_origen' });
+Remito.belongsTo(Sede, { foreignKey: 'sede_destino_id', as: 'sede_destino' });
+Remito.belongsTo(Usuario, { foreignKey: 'creado_por_id', as: 'creado_por' });
 
-Remito.belongsTo(Sede, {
-  foreignKey: 'sede_destino_id',
-  as: 'sede_destino'
-});
 
 Sede.hasMany(Remito, {
   foreignKey: 'sede_origen_id',
@@ -196,14 +184,12 @@ Sede.hasMany(Remito, {
   as: 'remitos_recibidos'
 });
 
-// Un remito es creado por un USUARIO del sistema (no personal)
-Remito.belongsTo(Usuario, {
-  foreignKey: 'solicitante_id',
-  as: 'solicitante'
-});
+// Un remito es creado por un Personal
+Remito.belongsTo(Personal, { foreignKey: 'solicitante_id', as: 'solicitante' }); // mantiene lo que pide negocio
 
-// Un remito puede tener un técnico asignado (que es personal, no usuario)
-Remito.belongsTo(Personal, {
+
+// Un remito puede tener un técnico asignado (que es usuario)
+Remito.belongsTo(Usuario, {
   foreignKey: 'tecnico_asignado_id',
   as: 'tecnico'
 });
@@ -266,10 +252,8 @@ HistorialInventario.belongsTo(Sede, {
 });
 
 // Un historial es registrado por un USUARIO del sistema
-HistorialInventario.belongsTo(Usuario, {
-  foreignKey: 'usuario_id',
-  as: 'usuario'
-});
+HistorialInventario.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' }); //
+
 
 Usuario.hasMany(HistorialInventario, {
   foreignKey: 'usuario_id',
@@ -318,10 +302,8 @@ Usuario.hasMany(ExtensionPrestamo, {
 // ============================================
 
 // Una auditoría es realizada por un USUARIO del sistema
-Auditoria.belongsTo(Usuario, {
-  foreignKey: 'usuario_id',
-  as: 'usuario'
-});
+Auditoria.belongsTo(Usuario, { foreignKey: 'usuario_id', as: 'usuario' });          //
+
 
 Usuario.hasMany(Auditoria, {
   foreignKey: 'usuario_id',

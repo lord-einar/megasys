@@ -29,7 +29,7 @@ router.get('/:id', inventarioController.getItemById);
 // POST - Crear item (Infraestructura y Soporte)
 router.post(
   '/',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   inventarioValidators.create,
   validateRequest,
   auditMiddleware('inventario', 'CREATE'),
@@ -39,7 +39,7 @@ router.post(
 // PUT - Actualizar item (Infraestructura y Soporte)
 router.put(
   '/:id',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   inventarioValidators.update,
   validateRequest,
   auditMiddleware('inventario', 'UPDATE'),
@@ -49,7 +49,7 @@ router.put(
 // POST - Marcar como préstamo
 router.post(
   '/:id/prestamo',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   inventarioValidators.prestamo,
   validateRequest,
   auditMiddleware('inventario', 'UPDATE'),
@@ -59,7 +59,7 @@ router.post(
 // POST - Devolver préstamo
 router.post(
   '/:id/devolucion',
-  authorize(AD_GROUPS.INFRAESTRUCTURA, AD_GROUPS.SOPORTE),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA, AD_GROUP_IDS.SOPORTE),
   inventarioValidators.devolucion,
   validateRequest,
   auditMiddleware('inventario', 'UPDATE'),

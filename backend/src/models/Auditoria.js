@@ -1,12 +1,13 @@
 // ============================================
 // backend/src/models/Auditoria.js
 // ============================================
-const { DataTypes } = require('sequelize');
+const { DataTypes, Sequelize } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Auditoria = sequelize.define('auditoria', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
@@ -28,13 +29,10 @@ const Auditoria = sequelize.define('auditoria', {
   valores_nuevos: {
     type: DataTypes.JSON
   },
-  usuario_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'personal',
-      key: 'id'
-    }
-  },
+usuario_id: {
+  type: DataTypes.INTEGER,
+  references: { model: 'usuarios', key: 'id' }
+},
   fecha_hora: {
     type: DataTypes.DATE,
     allowNull: false,

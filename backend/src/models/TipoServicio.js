@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const TipoServicio = sequelize.define('tipo_servicio', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },

@@ -6,7 +6,8 @@ const sequelize = require('../config/database');
 
 const Remito = sequelize.define('remito', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
@@ -21,7 +22,8 @@ const Remito = sequelize.define('remito', {
     defaultValue: DataTypes.NOW
   },
   sede_origen_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'sedes',
@@ -29,15 +31,22 @@ const Remito = sequelize.define('remito', {
     }
   },
   sede_destino_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'sedes',
       key: 'id'
     }
   },
+  creado_por_id: {
+  type: DataTypes.INTEGER,
+  allowNull: false,
+  references: { model: 'usuarios', key: 'id' }
+  },
   solicitante_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'personal',
@@ -50,11 +59,9 @@ const Remito = sequelize.define('remito', {
     allowNull: false
   },
   tecnico_asignado_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'personal',
-      key: 'id'
-    }
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    references: { model: 'usuarios', key: 'id' }
   },
   pdf_entrega_path: {
     type: DataTypes.STRING(500)

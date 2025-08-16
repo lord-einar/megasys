@@ -6,12 +6,14 @@ const sequelize = require('../config/database');
 
 const SedeServicio = sequelize.define('sede_servicio', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     autoIncrement: true
   },
   sede_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'sedes',
@@ -19,7 +21,8 @@ const SedeServicio = sequelize.define('sede_servicio', {
     }
   },
   servicio_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'servicios',
@@ -27,7 +30,8 @@ const SedeServicio = sequelize.define('sede_servicio', {
     }
   },
   proveedor_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     references: {
       model: 'proveedores',

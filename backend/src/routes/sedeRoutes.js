@@ -29,7 +29,7 @@ router.get('/:id/stats', sedeController.getStats);
 // POST - Crear sede (solo Infraestructura)
 router.post(
   '/',
-  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
   sedeValidators.create,
   validateRequest,
   auditMiddleware('sede', 'CREATE'),
@@ -39,7 +39,7 @@ router.post(
 // PUT - Actualizar sede (solo Infraestructura)
 router.put(
   '/:id',
-  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
   sedeValidators.update,
   validateRequest,
   auditMiddleware('sede', 'UPDATE'),
@@ -49,7 +49,7 @@ router.put(
 // DELETE - Eliminar sede (solo Infraestructura)
 router.delete(
   '/:id',
-  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
   auditMiddleware('sede', 'DELETE'),
   sedeController.deleteSede
 );
@@ -57,7 +57,7 @@ router.delete(
 // POST - Asignar personal a sede
 router.post(
   '/:id/personal',
-  authorize(AD_GROUPS.INFRAESTRUCTURA),
+  authorize(AD_GROUP_IDS.INFRAESTRUCTURA),
   auditMiddleware('personal_sede', 'CREATE'),
   sedeController.asignarPersonal
 );
