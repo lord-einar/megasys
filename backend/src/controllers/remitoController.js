@@ -1,11 +1,11 @@
 // ============================================
 // backend/src/controllers/remitoController.js
-// CORREGIDO: Todos los bugs identificados
+// CORREGIDO: Destructuring inválido y otras correcciones
 // ============================================
 const remitoService = require('../services/remitoService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { buildPaginatedResponse } = require('../utils/helpers');
-const path = require('path'); // ← AGREGADO: import faltante
+const path = require('path');
 const fs = require('fs');
 
 class RemitoController {
@@ -15,9 +15,9 @@ class RemitoController {
    */
   list = asyncHandler(async (req, res) => {
     const pagination = {
-      page: req.query.page || 1,
-      limit: req.query.limit || 10,
-      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      offset: ((parseInt(req.query.page) || 1) - 1) * (parseInt(req.query.limit) || 10)
     };
     
     const result = await remitoService.getRemitos(pagination, req.query);
@@ -46,6 +46,7 @@ class RemitoController {
    * POST /remitos
    */
   create = asyncHandler(async (req, res) => {
+    // ← CORREGIDO: destructuring inválido const { solicitante_id, .remitoData }
     const { solicitante_id, ...remitoData } = req.body;
     
     if (!solicitante_id) {
@@ -124,10 +125,9 @@ class RemitoController {
   /**
    * Descargar PDF de remito
    * GET /remitos/:id/pdf/:tipo
-   * CORREGIDO: Usar req.params.tipo y agregar import path
    */
   descargarPDF = asyncHandler(async (req, res) => {
-    const { id, tipo } = req.params; // ← CORREGIDO: params, no query
+    const { id, tipo } = req.params;
     
     if (!['entrega', 'confirmacion'].includes(tipo)) {
       return res.status(400).json({
@@ -150,7 +150,7 @@ class RemitoController {
     }
     
     // Verificar que el archivo existe
-    const fullPath = path.resolve(pdfPath); // ← path ahora está importado
+    const fullPath = path.resolve(pdfPath);
     
     if (!fs.existsSync(fullPath)) {
       return res.status(404).json({

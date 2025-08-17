@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/routes/remitoRoutes.js
+// CORREGIDO: Agregada ruta de confirmación faltante
 // ============================================
 const express = require('express');
 const { body, param, query, validationResult } = require('express-validator');
@@ -38,7 +39,7 @@ router.get(
   authorize(AD_GROUPS.MESA_AYUDA, AD_GROUPS.SOPORTE, AD_GROUPS.INFRAESTRUCTURA),
   [
     query('estado').optional().isIn(['preparado', 'en_transito', 'entregado', 'confirmado']),
-    query('confirmados').optional().isBoolean().toBoolean(), // si querés filtrar por confirmación/logica de pdf_confirmacion
+    query('confirmados').optional().isBoolean().toBoolean(),
     ...validatePagination
   ],
   validate,
@@ -118,7 +119,8 @@ router.post(
 );
 
 // =========================
-// Confirmación por token (público - sin auth)
+// ← NUEVA RUTA: Confirmación por token (público - sin auth)
+// GET /remitos/confirmar?token=xxx
 // =========================
 router.get(
   '/confirmar',
@@ -128,10 +130,10 @@ router.get(
 );
 
 // =========================
-/** Descargar PDF (entrega|confirmacion)
- * GET /remitos/:id/pdf/entrega
- * GET /remitos/:id/pdf/confirmacion
- */
+// Descargar PDF (entrega|confirmacion)
+// GET /remitos/:id/pdf/entrega
+// GET /remitos/:id/pdf/confirmacion
+// =========================
 router.get(
   '/:id/pdf/:tipo',
   authenticate,

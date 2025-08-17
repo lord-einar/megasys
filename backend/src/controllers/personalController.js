@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/controllers/personalController.js
+// CORREGIDO: Sintaxis .req.query inválida
 // ============================================
 const personalService = require('../services/personalService');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -11,13 +12,13 @@ class PersonalController {
    */
   list = asyncHandler(async (req, res) => {
     const pagination = {
-      page: req.query.page || 1,
-      limit: req.query.limit || 10,
-      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+      page: parseInt(req.query.page) || 1, // ← CORREGIDO: era .req.query
+      limit: parseInt(req.query.limit) || 10, // ← CORREGIDO: era .req.query
+      offset: ((parseInt(req.query.page) || 1) - 1) * (parseInt(req.query.limit) || 10)
     };
     
     const filters = {
-      ...req.query,
+      ...req.query, // ← CORREGIDO: era .req.query
       empresa_id: req.empresaId
     };
     

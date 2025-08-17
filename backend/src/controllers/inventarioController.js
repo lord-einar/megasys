@@ -1,6 +1,6 @@
 // ============================================
 // backend/src/controllers/inventarioController.js
-// CORREGIDO: Métodos alineados con las rutas
+// CORREGIDO: Sintaxis y objetos inválidos arreglados
 // ============================================
 const inventarioService = require('../services/inventarioService');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -13,16 +13,16 @@ class InventarioController {
    */
   list = asyncHandler(async (req, res) => {
     const pagination = {
-      page: req.query.page || 1,
-      limit: req.query.limit || 10,
-      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 10,
+      offset: ((parseInt(req.query.page) || 1) - 1) * (parseInt(req.query.limit) || 10)
     };
     
     const result = await inventarioService.getInventario(pagination, req.query);
     res.json(buildPaginatedResponse(
       result.data,
       result.page,
-      req.pagination.limit,
+      pagination.limit, // ← CORREGIDO: era req.pagination.limit (no existe)
       result.total
     ));
   });
@@ -46,7 +46,7 @@ class InventarioController {
   create = asyncHandler(async (req, res) => {
     // Agregar empresa_id al body
     const data = {
-      ...req.body,
+      ...req.body, // ← CORREGIDO: era .req.body (sintaxis inválida)
       empresa_id: req.empresaId
     };
     

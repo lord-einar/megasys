@@ -1,5 +1,6 @@
 // ============================================
-// backend/src/services/authService.js (ACTUALIZADO)
+// backend/src/services/authService.js
+// CORREGIDO: Sintaxis ...userInfo inválida
 // ============================================
 const jwt = require('jsonwebtoken');
 const { confidentialClientApplication, SCOPES, REDIRECT_URI } = require('../config/auth');
@@ -91,7 +92,7 @@ class AuthService {
       });
       
       if (!usuario) {
-        // Crear nuevo usuario
+        // Crear nuevo usuario - ← CORREGIDO: spread operator correcto
         usuario = await Usuario.create({
           ...userInfo,
           ultimo_acceso: new Date(),

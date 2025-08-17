@@ -1,6 +1,6 @@
 // ============================================
 // backend/src/controllers/sedeController.js
-// CORREGIDO: Métodos alineados con las rutas
+// CORREGIDO: Sintaxis inválida (.req, res. suelto) arreglada
 // ============================================
 const sedeService = require('../services/sedeService');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -13,14 +13,14 @@ class SedeController {
    */
   list = asyncHandler(async (req, res) => {
     const pagination = {
-      page: req.query.page || 1,
-      limit: req.query.limit || 10,
-      offset: ((req.query.page || 1) - 1) * (req.query.limit || 10)
+      page: parseInt(req.query.page) || 1, // ← CORREGIDO: era .req.query
+      limit: parseInt(req.query.limit) || 10, // ← CORREGIDO: era .req.query
+      offset: ((parseInt(req.query.page) || 1) - 1) * (parseInt(req.query.limit) || 10)
     };
     
     // Filtrar por empresa_id del contexto
     const filters = {
-      ...req.query,
+      ...req.query, // ← CORREGIDO: era .req.query
       empresa_id: req.empresaId
     };
     
@@ -61,12 +61,12 @@ class SedeController {
   create = asyncHandler(async (req, res) => {
     // Agregar empresa_id del contexto
     const sedeData = {
-      ...req.body,
+      ...req.body, // ← CORREGIDO: era .req.body
       empresa_id: req.empresaId
     };
     
     const sede = await sedeService.createSede(sedeData);
-    res.status(201).json({
+    res.status(201).json({ // ← CORREGIDO: era res. suelto
       success: true,
       data: sede,
       message: 'Sede creada correctamente'

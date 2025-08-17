@@ -1,5 +1,6 @@
 // ============================================
 // backend/src/services/pdfService.js
+// CORREGIDO: Path de PDFs alineado con server.js
 // ============================================
 const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
@@ -11,6 +12,7 @@ const { formatDateES, formatDateTimeES } = require('../utils/helpers');
 class PDFService {
   constructor() {
     this.browser = null;
+    // ← CORREGIDO: Apuntar a /backend/uploads/pdfs (raíz del backend)
     this.pdfDir = path.join(__dirname, '../../uploads/pdfs');
     this.ensurePdfDirectory();
   }
@@ -21,6 +23,7 @@ class PDFService {
   async ensurePdfDirectory() {
     try {
       await fs.mkdir(this.pdfDir, { recursive: true });
+      logger.info(`Directorio PDF asegurado: ${this.pdfDir}`);
     } catch (error) {
       logger.error('Error creando directorio de PDFs:', error);
     }
@@ -96,8 +99,10 @@ class PDFService {
       
       await page.close();
       
-      logger.info(`PDF generado: ${fileName}`);
-      return filePath;
+      logger.info(`PDF generado: ${fileName} en ${filePath}`);
+      
+      // ← RETORNAR PATH RELATIVO para que coincida con server.js static middleware
+      return `uploads/pdfs/${fileName}`;
     } catch (error) {
       logger.error('Error generando PDF de remito:', error);
       throw error;
@@ -112,7 +117,7 @@ class PDFService {
       <tr>
         <td>${item.tipo.nombre}</td>
         <td>${item.marca} ${item.modelo}</td>
-        <td>${item.service_tag}</td>
+        <td>${item.service_tag || '-'}</td>
         <td>${item.numero_serie || '-'}</td>
         <td>${item.remito_inventario.cantidad}</td>
         <td>${item.remito_inventario.observaciones || '-'}</td>
@@ -445,7 +450,9 @@ class PDFService {
       await page.close();
       
       logger.info(`PDF de confirmación generado: ${fileName}`);
-      return filePath;
+      
+      // ← RETORNAR PATH RELATIVO
+      return `uploads/pdfs/${fileName}`;
     } catch (error) {
       logger.error('Error generando PDF de confirmación:', error);
       throw error;
