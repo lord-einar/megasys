@@ -1,5 +1,5 @@
 // ============================================
-// backend/src/routes/sedeRoutes.js
+// backend/src/routes/sedeRoutes.js (ACTUALIZADO)
 // ============================================
 const express = require('express');
 const { body, param, query, validationResult } = require('express-validator');
@@ -71,8 +71,8 @@ router.post(
     body('provincia').isString().trim().notEmpty(),
     body('pais').optional().isString().trim(),
     body('telefono').optional().isString().trim(),
-    body('ip_sede').optional().isIP(),
-    body('codigo_sede').optional().isString().trim()
+    body('email_sede').optional().isEmail().normalizeEmail(),
+    body('ip_sede').optional().isIP()
   ],
   validate,
   (req, res) => controller.create(req, res)
@@ -95,8 +95,10 @@ router.put(
     body('provincia').optional().isString().trim(),
     body('pais').optional().isString().trim(),
     body('telefono').optional().isString().trim(),
+    body('email_sede').optional().isEmail().normalizeEmail(),
     body('ip_sede').optional().isIP(),
-    body('codigo_sede').optional().isString().trim()
+    body('es_casa_central').optional().isBoolean(),
+    body('activa').optional().isBoolean()
   ],
   validate,
   (req, res) => controller.update(req, res)

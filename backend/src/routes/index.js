@@ -5,6 +5,7 @@ const router = require('express').Router();
 
 // Importar rutas
 const authRoutes = require('./authRoutes');
+const empresaRoutes = require('./empresaRoutes'); // ← NUEVO
 const sedeRoutes = require('./sedeRoutes');
 const personalRoutes = require('./personalRoutes');
 const inventarioRoutes = require('./inventarioRoutes');
@@ -13,6 +14,7 @@ const dashboardRoutes = require('./dashboardRoutes');
 
 // Registrar rutas
 router.use('/auth', authRoutes);
+router.use('/empresas', empresaRoutes); // ← NUEVO
 router.use('/sedes', sedeRoutes);
 router.use('/personal', personalRoutes);
 router.use('/inventario', inventarioRoutes);
@@ -26,6 +28,7 @@ router.get('/', (req, res) => {
     message: 'API Megasys v1.0',
     endpoints: {
       auth: '/api/auth',
+      empresas: '/api/empresas', // ← NUEVO
       sedes: '/api/sedes',
       personal: '/api/personal',
       inventario: '/api/inventario',

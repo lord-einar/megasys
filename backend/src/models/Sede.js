@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Sede = sequelize.define('sede', {
@@ -19,11 +19,6 @@ const Sede = sequelize.define('sede', {
     type: DataTypes.STRING(100),
     allowNull: false
   },
-  codigo_sede: {
-    type: DataTypes.STRING(20),
-    allowNull: true,
-    comment: 'Código único de identificación de la sede'
-  },
   direccion: {
     type: DataTypes.STRING(255),
     allowNull: false
@@ -35,10 +30,6 @@ const Sede = sequelize.define('sede', {
   provincia: {
     type: DataTypes.STRING(100),
     allowNull: false
-  },
-  codigo_postal: {
-    type: DataTypes.STRING(20),
-    allowNull: true
   },
   pais: {
     type: DataTypes.STRING(100),
@@ -70,30 +61,11 @@ const Sede = sequelize.define('sede', {
   activa: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  },
-  horario_atencion: {
-    type: DataTypes.JSON,
-    defaultValue: {
-      lunes_viernes: '09:00-18:00',
-      sabado: null,
-      domingo: null
-    }
   }
 }, {
   tableName: 'sedes',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    {
-      unique: true,
-      fields: ['empresa_id', 'codigo_sede'],
-      where: {
-        codigo_sede: {
-          [Sequelize.Op.ne]: null
-        }
-      }
-    }
-  ]
+  underscored: true
 });
 
 module.exports = Sede;

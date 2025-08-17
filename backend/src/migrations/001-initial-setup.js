@@ -1,6 +1,6 @@
 // ============================================
 // backend/src/migrations/001-initial-setup.js
-// Migración inicial con todas las tablas usando UUID
+// Migración inicial con esquema actualizado (sin campos removidos)
 // ============================================
 'use strict';
 
@@ -148,7 +148,7 @@ module.exports = {
       }, { transaction });
 
       // ========================================
-      // TABLA: SEDES
+      // TABLA: SEDES (SIN campos removidos)
       // ========================================
       await queryInterface.createTable('sedes', {
         id: {
@@ -170,9 +170,6 @@ module.exports = {
           type: Sequelize.STRING(100),
           allowNull: false
         },
-        codigo_sede: {
-          type: Sequelize.STRING(20)
-        },
         direccion: {
           type: Sequelize.STRING(255),
           allowNull: false
@@ -184,9 +181,6 @@ module.exports = {
         provincia: {
           type: Sequelize.STRING(100),
           allowNull: false
-        },
-        codigo_postal: {
-          type: Sequelize.STRING(20)
         },
         pais: {
           type: Sequelize.STRING(100),
@@ -209,14 +203,6 @@ module.exports = {
         activa: {
           type: Sequelize.BOOLEAN,
           defaultValue: true
-        },
-        horario_atencion: {
-          type: Sequelize.JSON,
-          defaultValue: {
-            lunes_viernes: '09:00-18:00',
-            sabado: null,
-            domingo: null
-          }
         },
         created_at: {
           type: Sequelize.DATE,
@@ -595,7 +581,7 @@ module.exports = {
       }, { transaction });
 
       // ========================================
-      // TABLA: INVENTARIO
+      // TABLA: INVENTARIO (CON service_tag nullable)
       // ========================================
       await queryInterface.createTable('inventario', {
         id: {
@@ -622,12 +608,13 @@ module.exports = {
           allowNull: false
         },
         numero_serie: {
-          type: Sequelize.STRING(150)
+          type: Sequelize.STRING(150),
+          allowNull: true
         },
         service_tag: {
           type: Sequelize.STRING(150),
-          unique: true,
-          allowNull: false
+          allowNull: true,  // NULLABLE
+          unique: true
         },
         activo: {
           type: Sequelize.BOOLEAN,
@@ -701,7 +688,7 @@ module.exports = {
       }, { transaction });
 
       // ========================================
-      // TABLA: REMITOS
+      // TABLA: REMITOS (CON fecha_expiracion_token)
       // ========================================
       await queryInterface.createTable('remitos', {
         id: {
@@ -738,504 +725,568 @@ module.exports = {
           },
           onUpdate: 'CASCADE',
           onDelete: 'RESTRICT'
-        },solicitante_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'personal',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'RESTRICT'
-       },
-       tecnico_asignado_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'personal',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       creado_por_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'usuarios',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'RESTRICT'
-       },
-       estado: {
-         type: Sequelize.ENUM('preparado', 'en_transito', 'entregado', 'confirmado'),
-         allowNull: false,
-         defaultValue: 'preparado'
-       },
-       pdf_entrega_path: {
-         type: Sequelize.STRING(500)
-       },
-       pdf_confirmacion_path: {
-         type: Sequelize.STRING(500)
-       },
-       fecha_preparacion: {
-         type: Sequelize.DATE
-       },
-       fecha_transito: {
-         type: Sequelize.DATE
-       },
-       fecha_entrega: {
-         type: Sequelize.DATE
-       },
-       fecha_confirmacion: {
-         type: Sequelize.DATE
-       },
-       token_confirmacion: {
-         type: Sequelize.STRING(255),
-         unique: true
-       },
-       observaciones: {
-         type: Sequelize.TEXT
-       },
-       created_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       updated_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       }
-     }, { transaction });
+        },
+        solicitante_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'personal',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT'
+        },
+        tecnico_asignado_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'usuarios',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        creado_por_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'usuarios',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT'
+        },
+        estado: {
+          type: Sequelize.ENUM('preparado', 'en_transito', 'entregado', 'confirmado'),
+          allowNull: false,
+          defaultValue: 'preparado'
+        },
+        pdf_entrega_path: {
+          type: Sequelize.STRING(500)
+        },
+        pdf_confirmacion_path: {
+          type: Sequelize.STRING(500)
+        },
+        fecha_preparacion: {
+          type: Sequelize.DATE
+        },
+        fecha_transito: {
+          type: Sequelize.DATE
+        },
+        fecha_entrega: {
+          type: Sequelize.DATE
+        },
+        fecha_confirmacion: {
+          type: Sequelize.DATE
+        },
+        token_confirmacion: {
+          type: Sequelize.STRING(255),
+          unique: true
+        },
+        fecha_expiracion_token: {
+          type: Sequelize.DATE,
+          allowNull: true,
+          comment: 'Fecha de expiración del token de confirmación (24 horas)'
+        },
+        observaciones: {
+          type: Sequelize.TEXT
+        },
+        created_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        updated_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        }
+      }, { transaction });
 
-     // ========================================
-     // TABLA: REMITO_INVENTARIO
-     // ========================================
-     await queryInterface.createTable('remito_inventario', {
-       id: {
-         type: Sequelize.UUID,
-         defaultValue: Sequelize.literal('uuid_generate_v4()'),
-         primaryKey: true
-       },
-       remito_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'remitos',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'CASCADE'
-       },
-       inventario_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'inventario',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'RESTRICT'
-       },
-       cantidad: {
-         type: Sequelize.INTEGER,
-         allowNull: false,
-         defaultValue: 1
-       },
-       observaciones: {
-         type: Sequelize.TEXT
-       },
-       created_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       updated_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       }
-     }, { transaction });
+      // ========================================
+      // TABLA: REMITO_INVENTARIO
+      // ========================================
+      await queryInterface.createTable('remito_inventario', {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.literal('uuid_generate_v4()'),
+          primaryKey: true
+        },
+        remito_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'remitos',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        inventario_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'inventario',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT'
+        },
+        cantidad: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 1
+        },
+        observaciones: {
+          type: Sequelize.TEXT
+        },
+        created_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        updated_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        }
+      }, { transaction });
 
-     // ========================================
-     // TABLA: HISTORIAL_INVENTARIO
-     // ========================================
-     await queryInterface.createTable('historial_inventario', {
-       id: {
-         type: Sequelize.UUID,
-         defaultValue: Sequelize.literal('uuid_generate_v4()'),
-         primaryKey: true
-       },
-       inventario_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'inventario',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'CASCADE'
-       },
-       remito_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'remitos',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       sede_origen_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'sedes',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       sede_destino_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'sedes',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       fecha_movimiento: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       tipo_movimiento: {
-         type: Sequelize.ENUM('ingreso', 'egreso', 'transferencia', 'baja', 'prestamo', 'devolucion'),
-         allowNull: false
-       },
-       usuario_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'usuarios',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'RESTRICT'
-       },
-       observaciones: {
-         type: Sequelize.TEXT
-       },
-       created_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       updated_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       }
-     }, { transaction });
+      // ========================================
+      // TABLA: HISTORIAL_INVENTARIO
+      // ========================================
+      await queryInterface.createTable('historial_inventario', {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.literal('uuid_generate_v4()'),
+          primaryKey: true
+        },
+        inventario_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'inventario',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        remito_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'remitos',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        sede_origen_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'sedes',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        sede_destino_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'sedes',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        fecha_movimiento: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        tipo_movimiento: {
+          type: Sequelize.ENUM('ingreso', 'egreso', 'transferencia', 'baja', 'prestamo', 'devolucion'),
+          allowNull: false
+        },
+        usuario_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'usuarios',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT'
+        },
+        observaciones: {
+          type: Sequelize.TEXT
+        },
+        created_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        updated_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        }
+      }, { transaction });
 
-     // ========================================
-     // TABLA: EXTENSIONES_PRESTAMO
-     // ========================================
-     await queryInterface.createTable('extensiones_prestamo', {
-       id: {
-         type: Sequelize.UUID,
-         defaultValue: Sequelize.literal('uuid_generate_v4()'),
-         primaryKey: true
-       },
-       inventario_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'inventario',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'CASCADE'
-       },
-       fecha_devolucion_original: {
-         type: Sequelize.DATE,
-         allowNull: false
-       },
-       fecha_devolucion_nueva: {
-         type: Sequelize.DATE,
-         allowNull: false
-       },
-       motivo: {
-         type: Sequelize.TEXT,
-         allowNull: false
-       },
-       solicitante_id: {
-         type: Sequelize.UUID,
-         allowNull: false,
-         references: {
-           model: 'personal',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'RESTRICT'
-       },
-       aprobado_por_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'usuarios',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       fecha_solicitud: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       fecha_aprobacion: {
-         type: Sequelize.DATE
-       },
-       estado: {
-         type: Sequelize.ENUM('pendiente', 'aprobada', 'rechazada'),
-         defaultValue: 'pendiente'
-       },
-       created_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       updated_at: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       }
-     }, { transaction });
+      // ========================================
+      // TABLA: EXTENSIONES_PRESTAMO
+      // ========================================
+      await queryInterface.createTable('extensiones_prestamo', {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.literal('uuid_generate_v4()'),
+          primaryKey: true
+        },
+        inventario_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'inventario',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'CASCADE'
+        },
+        fecha_devolucion_original: {
+          type: Sequelize.DATE,
+          allowNull: false
+        },
+        fecha_devolucion_nueva: {
+          type: Sequelize.DATE,
+          allowNull: false
+        },
+        motivo: {
+          type: Sequelize.TEXT,
+          allowNull: false
+        },
+        solicitante_id: {
+          type: Sequelize.UUID,
+          allowNull: false,
+          references: {
+            model: 'personal',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'RESTRICT'
+        },
+        aprobado_por_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'usuarios',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        fecha_solicitud: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        fecha_aprobacion: {
+          type: Sequelize.DATE
+        },
+        estado: {
+          type: Sequelize.ENUM('pendiente', 'aprobada', 'rechazada'),
+          defaultValue: 'pendiente'
+        },
+        created_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        updated_at: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        }
+      }, { transaction });
 
-     // ========================================
-     // TABLA: AUDITORIA
-     // ========================================
-     await queryInterface.createTable('auditoria', {
-       id: {
-         type: Sequelize.UUID,
-         defaultValue: Sequelize.literal('uuid_generate_v4()'),
-         primaryKey: true
-       },
-       tabla_afectada: {
-         type: Sequelize.STRING(100),
-         allowNull: false
-       },
-       registro_id: {
-         type: Sequelize.UUID,
-         allowNull: false
-       },
-       accion: {
-         type: Sequelize.ENUM('CREATE', 'UPDATE', 'DELETE'),
-         allowNull: false
-       },
-       valores_anteriores: {
-         type: Sequelize.JSON
-       },
-       valores_nuevos: {
-         type: Sequelize.JSON
-       },
-       usuario_id: {
-         type: Sequelize.UUID,
-         references: {
-           model: 'usuarios',
-           key: 'id'
-         },
-         onUpdate: 'CASCADE',
-         onDelete: 'SET NULL'
-       },
-       fecha_hora: {
-         type: Sequelize.DATE,
-         allowNull: false,
-         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-       },
-       ip_usuario: {
-         type: Sequelize.STRING(45)
-       },
-       user_agent: {
-         type: Sequelize.STRING(500)
-       },
-       endpoint: {
-         type: Sequelize.STRING(255)
-       }
-     }, { transaction });
+      // ========================================
+      // TABLA: AUDITORIA
+      // ========================================
+      await queryInterface.createTable('auditoria', {
+        id: {
+          type: Sequelize.UUID,
+          defaultValue: Sequelize.literal('uuid_generate_v4()'),
+          primaryKey: true
+        },
+        tabla_afectada: {
+          type: Sequelize.STRING(100),
+          allowNull: false
+        },
+        registro_id: {
+          type: Sequelize.UUID,
+          allowNull: false
+        },
+        accion: {
+          type: Sequelize.ENUM('CREATE', 'UPDATE', 'DELETE'),
+          allowNull: false
+        },
+        valores_anteriores: {
+          type: Sequelize.JSON
+        },
+        valores_nuevos: {
+          type: Sequelize.JSON
+        },
+        usuario_id: {
+          type: Sequelize.UUID,
+          references: {
+            model: 'usuarios',
+            key: 'id'
+          },
+          onUpdate: 'CASCADE',
+          onDelete: 'SET NULL'
+        },
+        fecha_hora: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        },
+        ip_usuario: {
+          type: Sequelize.STRING(45)
+        },
+        user_agent: {
+          type: Sequelize.STRING(500)
+        },
+        endpoint: {
+          type: Sequelize.STRING(255)
+        }
+      }, { transaction });
 
-     // ========================================
-     // INDICES ADICIONALES
-     // ========================================
-     
-     // Índices para empresas
-     await queryInterface.addIndex('empresas', ['cuit'], { 
-       unique: true, 
-       transaction 
-     });
-     await queryInterface.addIndex('empresas', ['activa'], { 
-       transaction 
-     });
+      // ========================================
+      // INDICES PRINCIPALES
+      // ========================================
+      
+      // Índices para empresas
+      await queryInterface.addIndex('empresas', ['cuit'], { 
+        unique: true, 
+        transaction 
+      });
+      await queryInterface.addIndex('empresas', ['activa'], { 
+        transaction 
+      });
 
-     // Índices para usuarios
-     await queryInterface.addIndex('usuarios', ['email'], { 
-       unique: true, 
-       transaction 
-     });
-     await queryInterface.addIndex('usuarios', ['azure_id'], { 
-       unique: true, 
-       transaction 
-     });
-     await queryInterface.addIndex('usuarios', ['activo'], { 
-       transaction 
-     });
+      // Índices para usuarios
+      await queryInterface.addIndex('usuarios', ['email'], { 
+        unique: true, 
+        transaction 
+      });
+      await queryInterface.addIndex('usuarios', ['azure_id'], { 
+        unique: true, 
+        transaction 
+      });
+      await queryInterface.addIndex('usuarios', ['activo'], { 
+        transaction 
+      });
 
-     // Índices para sedes
-     await queryInterface.addIndex('sedes', ['empresa_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('sedes', ['activa'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('sedes', ['empresa_id', 'codigo_sede'], { 
-       unique: true, 
-       where: { codigo_sede: { [Sequelize.Op.ne]: null } },
-       transaction 
-     });
+      // Índices para sedes
+      await queryInterface.addIndex('sedes', ['empresa_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('sedes', ['activa'], { 
+        transaction 
+      });
 
-     // Índices para personal_sede
-     await queryInterface.addIndex('personal_sede', ['personal_id', 'sede_id', 'activo'], { 
-       transaction 
-     });
+      // Índices para personal_sede
+      await queryInterface.addIndex('personal_sede', ['personal_id', 'sede_id', 'activo'], { 
+        transaction 
+      });
 
-     // Índices para inventario
-     await queryInterface.addIndex('inventario', ['service_tag'], { 
-       unique: true, 
-       transaction 
-     });
-     await queryInterface.addIndex('inventario', ['sede_actual_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('inventario', ['prestamo'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('inventario', ['estado'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('inventario', ['tipo_articulo_id'], { 
-       transaction 
-     });
+      // Índices para inventario
+      await queryInterface.addIndex('inventario', ['service_tag'], { 
+        unique: true,
+        where: {
+          service_tag: {
+            [Sequelize.Op.ne]: null
+          }
+        },
+        name: 'inventario_service_tag_unique',
+        transaction 
+      });
+      
+      await queryInterface.addIndex('inventario', ['numero_serie'], { 
+        unique: true,
+        where: {
+          numero_serie: {
+            [Sequelize.Op.ne]: null
+          }
+        },
+        name: 'inventario_numero_serie_unique',
+        transaction 
+      });
+      
+      await queryInterface.addIndex('inventario', ['sede_actual_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('inventario', ['prestamo'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('inventario', ['estado'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('inventario', ['tipo_articulo_id'], { 
+        transaction 
+      });
 
-     // Índices para remitos
-     await queryInterface.addIndex('remitos', ['numero_remito'], { 
-       unique: true, 
-       transaction 
-     });
-     await queryInterface.addIndex('remitos', ['estado'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('remitos', ['fecha'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('remitos', ['sede_origen_id', 'sede_destino_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('remitos', ['token_confirmacion'], { 
-       unique: true, 
-       where: { token_confirmacion: { [Sequelize.Op.ne]: null } },
-       transaction 
-     });
+      // Índices para remitos
+      await queryInterface.addIndex('remitos', ['numero_remito'], { 
+        unique: true, 
+        transaction 
+      });
+      await queryInterface.addIndex('remitos', ['estado'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('remitos', ['fecha'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('remitos', ['sede_origen_id', 'sede_destino_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('remitos', ['token_confirmacion'], { 
+        unique: true, 
+        where: { token_confirmacion: { [Sequelize.Op.ne]: null } },
+        transaction 
+      });
+      await queryInterface.addIndex('remitos', ['fecha_expiracion_token'], { 
+        name: 'remitos_expiracion_token_idx',
+        transaction 
+      });
 
-     // Índices para remito_inventario
-     await queryInterface.addIndex('remito_inventario', ['remito_id', 'inventario_id'], { 
-       unique: true,
-       transaction 
-     });
+      // Índices para remito_inventario
+      await queryInterface.addIndex('remito_inventario', ['remito_id', 'inventario_id'], { 
+        unique: true,
+        transaction 
+      });
 
-     // Índices para historial_inventario
-     await queryInterface.addIndex('historial_inventario', ['inventario_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('historial_inventario', ['fecha_movimiento'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('historial_inventario', ['tipo_movimiento'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('historial_inventario', ['usuario_id'], { 
-       transaction 
-     });
+      // Índices para historial_inventario
+      await queryInterface.addIndex('historial_inventario', ['inventario_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('historial_inventario', ['fecha_movimiento'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('historial_inventario', ['tipo_movimiento'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('historial_inventario', ['usuario_id'], { 
+        transaction 
+      });
 
-     // Índices para extensiones_prestamo
-     await queryInterface.addIndex('extensiones_prestamo', ['inventario_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('extensiones_prestamo', ['estado'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('extensiones_prestamo', ['fecha_solicitud'], { 
-       transaction 
-     });
+      // Índices para extensiones_prestamo
+      await queryInterface.addIndex('extensiones_prestamo', ['inventario_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('extensiones_prestamo', ['estado'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('extensiones_prestamo', ['fecha_solicitud'], { 
+        transaction 
+      });
 
-     // Índices para auditoría
-     await queryInterface.addIndex('auditoria', ['tabla_afectada', 'registro_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('auditoria', ['usuario_id'], { 
-       transaction 
-     });
-     await queryInterface.addIndex('auditoria', ['fecha_hora'], { 
-       transaction 
-     });
+      // Índices para auditoría
+      await queryInterface.addIndex('auditoria', ['tabla_afectada', 'registro_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('auditoria', ['usuario_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('auditoria', ['fecha_hora'], { 
+        transaction 
+      });
 
-     // Índices para sede_servicios
-     await queryInterface.addIndex('sede_servicios', ['sede_id', 'servicio_id', 'activo'], { 
-       transaction 
-     });
+      // Índices para sede_servicios
+      await queryInterface.addIndex('sede_servicios', ['sede_id', 'servicio_id', 'activo'], { 
+        transaction 
+      });
 
-     // ========================================
-     // COMMIT TRANSACTION
-     // ========================================
-     await transaction.commit();
-     console.log('✅ Migración completada exitosamente');
+      // Índices para proveedores
+      await queryInterface.addIndex('proveedores', ['nombre_empresa'], { 
+        unique: true,
+        transaction 
+      });
+      await queryInterface.addIndex('proveedores', ['activo'], { 
+        transaction 
+      });
 
-   } catch (error) {
-     await transaction.rollback();
-     console.error('❌ Error en migración:', error);
-     throw error;
-   }
- },
+      // Índices para roles
+      await queryInterface.addIndex('roles', ['nombre'], { 
+        unique: true,
+        transaction 
+      });
 
- down: async (queryInterface, Sequelize) => {
-   const transaction = await queryInterface.sequelize.transaction();
-   
-   try {
-     // Eliminar tablas en orden inverso para respetar foreign keys
-     await queryInterface.dropTable('auditoria', { transaction });
-     await queryInterface.dropTable('extensiones_prestamo', { transaction });
-     await queryInterface.dropTable('historial_inventario', { transaction });
-     await queryInterface.dropTable('remito_inventario', { transaction });
-     await queryInterface.dropTable('remitos', { transaction });
-     await queryInterface.dropTable('inventario', { transaction });
-     await queryInterface.dropTable('tipo_articulos', { transaction });
-     await queryInterface.dropTable('sede_servicios', { transaction });
-     await queryInterface.dropTable('servicios', { transaction });
-     await queryInterface.dropTable('tipo_servicios', { transaction });
-     await queryInterface.dropTable('proveedores', { transaction });
-     await queryInterface.dropTable('personal_sede', { transaction });
-     await queryInterface.dropTable('roles', { transaction });
-     await queryInterface.dropTable('personal', { transaction });
-     await queryInterface.dropTable('sedes', { transaction });
-     await queryInterface.dropTable('usuarios', { transaction });
-     await queryInterface.dropTable('empresas', { transaction });
+      // Índices para tipo_servicios
+      await queryInterface.addIndex('tipo_servicios', ['nombre'], { 
+        unique: true,
+        transaction 
+      });
 
-     await transaction.commit();
-     console.log('✅ Rollback completado exitosamente');
+      // Índices para tipo_articulos
+      await queryInterface.addIndex('tipo_articulos', ['nombre'], { 
+        unique: true,
+        transaction 
+      });
 
-   } catch (error) {
-     await transaction.rollback();
-     console.error('❌ Error en rollback:', error);
-     throw error;
-   }
- }
+      // Índices para servicios
+      await queryInterface.addIndex('servicios', ['tipo_servicio_id'], { 
+        transaction 
+      });
+      await queryInterface.addIndex('servicios', ['activo'], { 
+        transaction 
+      });
+
+      // ========================================
+      // COMMIT TRANSACTION
+      // ========================================
+      await transaction.commit();
+      console.log('✅ Migración inicial completada exitosamente');
+
+    } catch (error) {
+      await transaction.rollback();
+      console.error('❌ Error en migración inicial:', error);
+      throw error;
+    }
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    const transaction = await queryInterface.sequelize.transaction();
+    
+    try {
+      // Eliminar tablas en orden inverso para respetar foreign keys
+      await queryInterface.dropTable('auditoria', { transaction });
+      await queryInterface.dropTable('extensiones_prestamo', { transaction });
+      await queryInterface.dropTable('historial_inventario', { transaction });
+      await queryInterface.dropTable('remito_inventario', { transaction });
+      await queryInterface.dropTable('remitos', { transaction });
+      await queryInterface.dropTable('inventario', { transaction });
+      await queryInterface.dropTable('tipo_articulos', { transaction });
+      await queryInterface.dropTable('sede_servicios', { transaction });
+      await queryInterface.dropTable('servicios', { transaction });
+      await queryInterface.dropTable('tipo_servicios', { transaction });
+      await queryInterface.dropTable('proveedores', { transaction });
+      await queryInterface.dropTable('personal_sede', { transaction });
+      await queryInterface.dropTable('roles', { transaction });
+      await queryInterface.dropTable('personal', { transaction });
+      await queryInterface.dropTable('sedes', { transaction });
+      await queryInterface.dropTable('usuarios', { transaction });
+      await queryInterface.dropTable('empresas', { transaction });
+
+      // Deshabilitar extensión UUID (opcional)
+      await queryInterface.sequelize.query(
+        'DROP EXTENSION IF EXISTS "uuid-ossp";',
+        { transaction }
+      );
+
+      await transaction.commit();
+      console.log('✅ Rollback completado exitosamente');
+
+    } catch (error) {
+      await transaction.rollback();
+      console.error('❌ Error en rollback:', error);
+      throw error;
+    }
+  }
 };
